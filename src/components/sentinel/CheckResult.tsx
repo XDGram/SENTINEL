@@ -74,7 +74,7 @@ export function CheckResult({ input }: { input: string }) {
       )}
       {d.servUsed && r?.worthVerifying && (
         <p className="text-xs text-ink-soft">
-          Sentinel recorded this as a new threat. Once evaluated by Reppo, it can protect every other user.
+          Watchdog recorded this as a new threat. Once evaluated by Reppo, it can protect every other user.
         </p>
       )}
       {d.servModel && <MonoLabel className="block text-ink-soft/70">Reasoned by SERV · {d.servModel}</MonoLabel>}

@@ -129,7 +129,7 @@ export function ThreatField() {
       <canvas ref={ref} className="block h-[200px] w-full sm:h-[260px]" aria-hidden />
       <p className="label-mono absolute right-4 bottom-3 rounded-full bg-deep/80 px-3 py-1 text-white/80 backdrop-blur sm:right-6">
         {feed.isSuccess
-          ? `${verified} Reppo-verified attacker${verified === 1 ? "" : "s"} in Sentinel's memory`
+          ? `${verified} Reppo-verified attacker${verified === 1 ? "" : "s"} in Watchdog's memory`
           : "Loading threat memory…"}
       </p>
     </div>

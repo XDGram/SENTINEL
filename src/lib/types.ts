@@ -205,7 +205,7 @@ export interface ThreatEvent {
   detail: string;
 }
 
-/** Result of one background intel sweep (Sentinel actively gathering new threats). */
+/** Result of one background intel sweep (Watchdog actively gathering new threats). */
 export interface IntelSweep {
   id: string;
   at: string;

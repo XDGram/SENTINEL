@@ -1,6 +1,6 @@
-# Sentinel architecture
+# Watchdog architecture
 
-Sentinel checks a wallet action **before** it is signed. It explains the risk in plain language and backs every claim with evidence. New attacks are verified through Reppo, and verified attackers are stored in a shared threat memory that protects the next user instantly.
+Watchdog checks a wallet action **before** it is signed. It explains the risk in plain language and backs every claim with evidence. New attacks are verified through Reppo, and verified attackers are stored in a shared threat memory that protects the next user instantly.
 
 ## Request pipeline: `POST /api/analyze`
 

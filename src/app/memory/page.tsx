@@ -312,7 +312,7 @@ export default function MemoryPage() {
       <p className="label-mono text-ink-soft">Live from Supabase · verified by Reppo</p>
       <h1 className="font-display mt-3 text-[40px] leading-[1.05] text-ink sm:text-[56px]">Threat memory</h1>
       <p className="mt-2 text-sm text-ink-soft">
-        Each attacker Sentinel finds goes through four steps: discovered, sent to Reppo, verified, and then used
+        Each attacker Watchdog finds goes through four steps: discovered, sent to Reppo, verified, and then used
         to protect the next person. Only Reppo-verified threats block other users.
       </p>
 
@@ -350,7 +350,7 @@ export default function MemoryPage() {
 
       {data && data.threats.length === 0 && (
         <p className="mt-6 rounded-[var(--radius-card)] border border-line bg-surface p-4 text-sm text-ink-soft">
-          No threats recorded yet. Run a wallet action through Sentinel and any attacker it finds will appear here.
+          No threats recorded yet. Run a wallet action through Watchdog and any attacker it finds will appear here.
         </p>
       )}
 

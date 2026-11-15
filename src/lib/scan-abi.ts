@@ -58,7 +58,7 @@ export function encodeAllowance(owner: string, spender: string): string {
 }
 
 /**
- * Calldata for approve(spender, 0) — the revoke transaction. Sentinel only
+ * Calldata for approve(spender, 0) — the revoke transaction. Watchdog only
  * ever builds this for the user to sign; it never sends it.
  */
 export function encodeApprove(spender: string, amount: bigint): string {

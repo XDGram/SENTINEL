@@ -44,9 +44,9 @@ export function AnalysisPanel({
     return (
       <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-[var(--radius-box)] border border-dashed border-line p-8 text-center">
         <ShieldCheck className="h-8 w-8 text-teal" aria-hidden />
-        <p className="font-display mt-4 text-3xl text-ink">Sentinel is watching.</p>
+        <p className="font-display mt-4 text-3xl text-ink">Watchdog is watching.</p>
         <p className="mt-2 max-w-sm text-sm leading-6 text-ink-soft">
-          Pick something for Ada or Bayo to do, then press Send or Sign. Sentinel checks it before anything goes through, and
+          Pick something for Ada or Bayo to do, then press Send or Sign. Watchdog checks it before anything goes through, and
           explains what it found here.
         </p>
       </div>
@@ -58,7 +58,7 @@ export function AnalysisPanel({
     <div className="relative rounded-[var(--radius-box)] border border-line bg-surface p-5 sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <MonoLabel className="text-ink-soft">
-          Sentinel · {panel.owner}&apos;s {panel.action.kind === "send" ? "payment" : panel.action.kind === "approve" ? "approval" : "signature"}
+          Watchdog · {panel.owner}&apos;s {panel.action.kind === "send" ? "payment" : panel.action.kind === "approve" ? "approval" : "signature"}
         </MonoLabel>
         {onClose && (
           <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full hover:bg-black/5 lg:hidden" aria-label="Close">

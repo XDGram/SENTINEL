@@ -1,4 +1,4 @@
-// Background intel sweep: Sentinel actively gathers new threats on a schedule.
+// Background intel sweep: Watchdog actively gathers new threats on a schedule.
 // - Refreshes the ScamSniffer and MetaMask blocklists and records what's new
 // - Searches for fresh community reports of wallet attacks
 // Runs from a Vercel cron (see vercel.json) or manually via /api/intel/sweep.

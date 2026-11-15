@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     address: scan.address,
     chainId: scan.chainId,
     account: { ...scan.account, description: accountNote },
-    readOnly: "Sentinel never moves funds. Each approval includes unsigned revoke calldata that you sign from your own wallet.",
+    readOnly: "Watchdog never moves funds. Each approval includes unsigned revoke calldata that you sign from your own wallet.",
     summary,
     servUsed: Boolean(summary),
     servModel: summary ? SERV_MODEL : undefined,

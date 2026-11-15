@@ -3,7 +3,7 @@ import { Container } from "@/components/ui";
 import { DemoClient } from "@/components/demo/DemoClient";
 
 export const metadata: Metadata = {
-  title: "Demo · Sentinel",
+  title: "Demo · Watchdog",
   description: "Two simulated wallets, real scam data, real SERV Reasoning and Reppo verification.",
 };
 

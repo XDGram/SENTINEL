@@ -1,4 +1,4 @@
-// Reppo Evaluation API client: independent verification of Sentinel's analyses.
+// Reppo Evaluation API client: independent verification of Watchdog's analyses.
 // Server-only. Reads REPPO_API_KEY from the environment.
 // Docs: https://docs.reppo.ai/api/eval/overview.md and https://eval.reppo.xyz/agents.md
 //
@@ -8,7 +8,7 @@
 // `settlementMinutes`, with an accept/revise/reject verdict after a settlement
 // window) were removed upstream and now return 404. The live API takes a single
 // free-text `input` and scores it with a panel of evaluators, usually in
-// 30-90 seconds. This module keeps Sentinel's internal contract
+// 30-90 seconds. This module keeps Watchdog's internal contract
 // (PENDING/SETTLED/FAILED and an accept/revise/reject decision) and maps the
 // live API onto it, so the routes and threat timeline are unchanged.
 
@@ -130,7 +130,7 @@ function buildInput(threat: Threat): string {
 
   const head = [
     "AGENT UNDER EVALUATION",
-    "Sentinel, a wallet safety agent for beginner crypto users. Before a transaction or signature is approved, it runs a deterministic rule engine, checks public threat-intelligence sources (GoPlus Security, the ScamSniffer database, the MetaMask phishing list and web community reports), then produces a verdict, a beginner-readable explanation, an auditable reasoning trace citing that evidence, and a safe fix.",
+    "Watchdog, a wallet safety agent for beginner crypto users. Before a transaction or signature is approved, it runs a deterministic rule engine, checks public threat-intelligence sources (GoPlus Security, the ScamSniffer database, the MetaMask phishing list and web community reports), then produces a verdict, a beginner-readable explanation, an auditable reasoning trace citing that evidence, and a safe fix.",
     "If this analysis is accepted, the attacker indicator below enters a shared threat memory that blocks the same attacker instantly for other users, so a wrong accept would propagate a false positive.",
     "",
     "WHAT SENTINEL CONCLUDED",
@@ -144,7 +144,7 @@ function buildInput(threat: Threat): string {
     `Recommended safe action: ${a.safeFix ?? "Cancel the request; do not sign or send."}`,
     "",
     "DISCLOSURE",
-    packet.simulationDisclosure ?? "This scenario comes from Sentinel's demo simulator.",
+    packet.simulationDisclosure ?? "This scenario comes from Watchdog's demo simulator.",
     "",
     "SOURCE INDEPENDENCE AND CAVEATS",
     `Independent lines of external evidence: ${packet.sourceIndependence?.independentFlaggingSources?.join(", ") || "none"}`,
@@ -266,7 +266,7 @@ function mapStatus(status: unknown): ReppoStatus {
 
 /**
  * The live API decides `accept` / `reject` at its policy threshold and routes
- * `ship` / `review` / `block`. Sentinel's threat memory trusts an accept, which
+ * `ship` / `review` / `block`. Watchdog's threat memory trusts an accept, which
  * is what `decision` carries: `route` is `review` whenever evaluator confidence
  * is below high, so routing on it alone would reject sound, high-scoring
  * verdicts. A `block` route still overrides, since that means do not use the

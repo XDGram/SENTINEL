@@ -107,7 +107,7 @@ export async function goplusSite(siteUrl: string): Promise<IntelReport> {
 
 // ---- Approval security: what kind of spender is this? ----
 
-/** The parts of GoPlus's approval_security result Sentinel actually uses. */
+/** The parts of GoPlus's approval_security result Watchdog actually uses. */
 export interface ApprovalSecurity {
   contractName?: string;
   tag?: string;
@@ -233,7 +233,7 @@ export async function goplusApprovalSecurity(address: string, chainId = 1): Prom
 
 // ---- Token security ----
 
-/** The small subset of token_security Sentinel reports on. */
+/** The small subset of token_security Watchdog reports on. */
 export interface TokenSecurity {
   tokenName?: string;
   tokenSymbol?: string;

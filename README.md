@@ -1,10 +1,10 @@
-# Sentinel
+# Watchdog
 
 **Learns from the first user's attack, gets it verified through Reppo, then protects the next person.**
 
-Sentinel is a wallet safety agent for people new to crypto. Before you send funds or sign something, Sentinel checks the action, tells you in plain English whether it is safe or risky, shows the evidence behind that answer, and offers a safe fix: use the correct address, cancel, revoke or reduce an allowance.
+Watchdog is a wallet safety agent for people new to crypto. Before you send funds or sign something, Watchdog checks the action, tells you in plain English whether it is safe or risky, shows the evidence behind that answer, and offers a safe fix: use the correct address, cancel, revoke or reduce an allowance.
 
-When Sentinel finds a new attacker, it does not just warn one person. The finding goes to **Reppo** for independent verification. Once Reppo accepts it, the attacker is stored in a shared **threat memory**, and the next user who meets the same attacker is blocked instantly. A daily sweep also gathers new threats from public sources.
+When Watchdog finds a new attacker, it does not just warn one person. The finding goes to **Reppo** for independent verification. Once Reppo accepts it, the attacker is stored in a shared **threat memory**, and the next user who meets the same attacker is blocked instantly. A daily sweep also gathers new threats from public sources.
 
 Built for **SERV Hackathon 02, Reppo track**.
 
@@ -19,7 +19,7 @@ This is the real run on the deployed app, read back from the Supabase `threats` 
 | 14:15:05 | Ada (wallet A) meets the USDT-rewards drainer `0x4341…a67b` on `usdt-rewards.xyz`. Rules flag a permit; GoPlus and ScamSniffer both list the spender. Threat discovered. |
 | 14:15:07 | Sent to Reppo, eval `cmwhx2cwc000008l8u5dc3t9a`. |
 | 14:18:14 | Reppo: **reject, 65/100**. Not added to threat memory. |
-| | Fixes from that feedback: the evidence packet now discloses what is simulated, includes the safe fix and the source-independence caveats, and Sentinel's confidence is calibrated. |
+| | Fixes from that feedback: the evidence packet now discloses what is simulated, includes the safe fix and the source-independence caveats, and Watchdog's confidence is calibrated. |
 | 14:24:47 | Resubmitted (the one allowed retry), eval `cmwhxesn0000107jtf2a6m7ry`. |
 | 14:31:16 | Reppo: **accept, 96/100** (Reppo reported low confidence). Added to threat memory. |
 | 14:31:17 | Bayo (wallet B) meets the same drainer on a different site, `usdt-erc20.network`. **Blocked from threat memory before signing, with no SERV call and no source lookups.** |
@@ -34,7 +34,7 @@ Beginners lose money to attacks that look like normal wallet actions:
 - **Approval and permit drains.** A fake dApp asks for an unlimited token approval or an off-chain `permit` signature. One click lets the attacker take every token of that type, now or months later.
 - **Warnings nobody understands.** Existing warnings say things like "unverified contract, `setApprovalForAll`, EIP-712 typed data". Beginners don't understand them, so they click through.
 
-Sentinel turns those signals into one short sentence a beginner understands, plus a button that does the safe thing.
+Watchdog turns those signals into one short sentence a beginner understands, plus a button that does the safe thing.
 
 ## How it works
 
@@ -49,7 +49,7 @@ Wallet action (send / approve / permit / connect)
 
 Full detail is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-## How Sentinel uses SERV Reasoning
+## How Watchdog uses SERV Reasoning
 
 SERV Reasoning is the brain (model `gpt-6-luna` by default, set with `SERV_MODEL`). It is called at most once per analysis and receives the rule-engine findings and the intel gathered from external sources. It returns:
 
@@ -85,9 +85,9 @@ Lookups run in parallel with 5-second timeouts. Sources that are not configured 
 
 ## How Reppo verification works
 
-1. Sentinel discovers a new attacker. The server builds an evidence packet from the rule findings and the external sources. The client cannot supply or change the payload.
+1. Watchdog discovers a new attacker. The server builds an evidence packet from the rule findings and the external sources. The client cannot supply or change the payload.
 2. If SERV recommends verification and the verification rule below is met, the packet goes to Reppo (`POST /api/reppo/submit`).
-3. Reppo scores the submission with a panel of evaluators and answers in **minutes**. In the live run above, it took about 3 and 6½ minutes. While it waits, the threat shows as *pending*. Sentinel trusts Reppo's `accept` decision; a `block` route always rejects.
+3. Reppo scores the submission with a panel of evaluators and answers in **minutes**. In the live run above, it took about 3 and 6½ minutes. While it waits, the threat shows as *pending*. Watchdog trusts Reppo's `accept` decision; a `block` route always rejects.
 4. `GET /api/reppo/status` polls Reppo and moves the threat along its timeline:
    - **accept** → the threat is **verified** and enters threat memory.
    - **revise / reject** → the threat is **rejected** and is not trusted. It can be **resubmitted once**, after a new analysis refreshes its evidence packet. A second rejection is final.
@@ -191,11 +191,11 @@ The server-built evidence packet sent to Reppo is never returned. Responses are 
 - Reppo submissions, resubmissions, and the latest evaluations with eval ID, decision and score
 - **repeat attacks blocked from memory**. Each one is a repeat investigation avoided, because it skipped SERV and every source lookup.
 
-There is deliberately **no catch rate**. That would need a labelled benchmark set, which Sentinel does not have.
+There is deliberately **no catch rate**. That would need a labelled benchmark set, which Watchdog does not have.
 
 ## Revenue
 
-Sentinel is **free for users**. Wallets, exchanges and dApps pay for:
+Watchdog is **free for users**. Wallets, exchanges and dApps pay for:
 
 - the **verified threat feed** (`/api/feed`): Reppo-verified attackers, with evidence, as an API or stream
 - the **explainer API**: plain-language risk explanations to show their own users before they sign
@@ -209,7 +209,7 @@ Sentinel is **free for users**. Wallets, exchanges and dApps pay for:
 
 ## Credits
 
-UI elements adapted from [Uiverse.io](https://uiverse.io) (MIT License) and restyled for Sentinel:
+UI elements adapted from [Uiverse.io](https://uiverse.io) (MIT License) and restyled for Watchdog:
 glider tabs by Pradeepsaranbishnoi, arrow and expanding-circle buttons by alexmaracinaru,
 expanding round button by vinodjangid07, ring pulse loader by Li-Deheng, sliding bar loader by
 shadowmurphy, rotating glow input by vikas7754. Display type: Newsreader; text: Geist.

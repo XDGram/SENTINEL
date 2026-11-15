@@ -1,8 +1,25 @@
-export function Logo({ className }: { className?: string }) {
+// Watchdog mark: an alert shepherd-type dog in profile, ears up, watching.
+// The eye sits dark under a heavy brow, in shadow, with a faint glint.
+
+export function Logo({ className, onDark }: { className?: string; onDark?: boolean }) {
+  const body = onDark ? "#e8ebea" : "#1e2a28";
+  const socket = onDark ? "#9fb0ab" : "#3a4a45";
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <path d="M12 2.5 20 6v5.6c0 4.7-3.3 8.6-8 9.9-4.7-1.3-8-5.2-8-9.9V6l8-3.5Z" fill="currentColor" />
-      <circle cx="12" cy="11.5" r="2.6" fill="#e59bd0" />
+    <svg viewBox="0 0 64 64" className={className} aria-hidden>
+      <path
+        fill={body}
+        d="M13 62C11.5 53 11.6 44 14 36C15.4 31 17.2 27 19.6 23.6L20.2 5C20.4 3.4 22.2 2.9 23.2 4.2L28.6 13.2L30.4 4.4C31 2.8 33.2 2.8 33.9 4.4L36.4 16C38.2 16.6 40.4 18.4 42 20.6L56.6 22.8C60 23.3 62.3 25.8 62 28.8C61.8 31 60 32.3 57.8 32.4L52 32.6C50.8 34.2 49 35.4 46.8 36.2C43.6 37.4 40 37.6 36.6 37.4C35.4 41 35.6 45 37 49C38.2 53 40.2 57.6 42.6 62Z"
+      />
+      <path fill={socket} d="M33.4 23.4C35.8 20.9 40.2 20.8 42.6 23.4C40.4 26.6 35.8 26.8 33.4 23.4Z" />
+      <path fill="#070c0b" d="M34.6 23.6C36.6 22 39.6 22 41.4 23.6C39.6 25.6 36.6 25.7 34.6 23.6Z" />
+      <circle cx="38.4" cy="23.7" r="0.55" fill="#e59bd0" />
+      <path fill={body} d="M32.2 22.6C35.6 19.6 40.8 19.4 44 22.4C40.6 21.4 36.4 21.9 33.4 23.9Z" />
+      <path
+        fill="#070c0b"
+        d="M58.8 24.4C61 24.5 62.2 26 61.9 27.9C61.7 29.2 60.4 29.7 59.2 29.4C57.7 29 57.2 27.6 57.4 26.3C57.6 25.2 58 24.5 58.8 24.4Z"
+      />
+      <path fill="none" stroke="#070c0b" strokeWidth="0.9" strokeLinecap="round" d="M52.4 32.4C50 32.8 47.6 32.9 45.6 32.6" />
+      <path fill="#e59bd0" d="M13.4 50.6C21 49.2 29.6 49.4 37.6 51.4L38.4 54.2C30.4 52.2 21.6 52 13.6 53.4Z" />
     </svg>
   );
 }

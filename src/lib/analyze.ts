@@ -43,7 +43,7 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
     const memoryEvidence: Evidence = {
       id: "mem",
       source: "threat-memory",
-      claim: "This exact attacker is already in Sentinel's verified threat memory.",
+      claim: "This exact attacker is already in Watchdog's verified threat memory.",
       detail: `First seen ${new Date(known.discoveredAt).toUTCString()}. Verified by Reppo evaluation ${known.reppoEvalId ?? "n/a"}${
         known.reppoScore != null ? ` (score ${known.reppoScore}/100, ${known.reppoDecision})` : ""
       }.${known.externalSources?.length ? ` Also flagged by: ${known.externalSources.join(", ")}.` : ""}`,
@@ -54,7 +54,7 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
       attackType: known.attackType,
       confidence: 0.99,
       headline: `Stopped: this is a known ${ATTACK_LABEL[known.attackType]} attack.`,
-      explanation: `Another Sentinel user met this same attacker earlier. The attack was checked against public scam sources and verified by Reppo, so Sentinel blocked it for you straight away. ${known.summary}`,
+      explanation: `Another Watchdog user met this same attacker earlier. The attack was checked against public scam sources and verified by Reppo, so Watchdog blocked it for you straight away. ${known.summary}`,
       steps: [
         `Rules extracted indicators: ${indicators.join(", ")}.`,
         `Threat memory lookup matched verified threat ${known.id}.`,
@@ -210,7 +210,7 @@ function buildReppoPacket(req: AnalyzeRequest, analysis: Analysis, findings: Rul
   return JSON.stringify(
     {
       simulationDisclosure:
-        "The victim wallet, its balance, history and the request itself are simulated by Sentinel's demo. The attacker indicators (spender address and website) are real entries in public scam databases, and every source lookup and the SERV analysis were live calls.",
+        "The victim wallet, its balance, history and the request itself are simulated by Watchdog's demo. The attacker indicators (spender address and website) are real entries in public scam databases, and every source lookup and the SERV analysis were live calls.",
       action: {
         kind: a.kind,
         chain: a.chain,

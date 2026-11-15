@@ -3,8 +3,8 @@ import { Container, MonoLabel } from "@/components/ui";
 import { LiveCounts, LiveFeed } from "@/components/developers/LiveFeed";
 
 export const metadata: Metadata = {
-  title: "Developers · Sentinel threat intelligence API",
-  description: "Query Sentinel's Reppo-verified threat feed and plain-English risk checks from your wallet, exchange or dApp.",
+  title: "Developers · Watchdog threat intelligence API",
+  description: "Query Watchdog's Reppo-verified threat feed and plain-English risk checks from your wallet, exchange or dApp.",
 };
 
 const BASE = "https://sentinel-three-cyan.vercel.app";
@@ -15,7 +15,7 @@ const ENDPOINTS: { n: string; method: "GET" | "POST"; path: string; title: strin
     method: "GET",
     path: "/api/feed",
     title: "Verified threat feed",
-    body: "Every attacker Sentinel has discovered and Reppo has verified, with proof: the Reppo evaluation ID, score and decision, the independent sources that flagged it, and how often it has been caught since. Filter with ?indicator=0x… or ?domain=….",
+    body: "Every attacker Watchdog has discovered and Reppo has verified, with proof: the Reppo evaluation ID, score and decision, the independent sources that flagged it, and how often it has been caught since. Filter with ?indicator=0x… or ?domain=….",
     curl: `curl ${BASE}/api/feed\ncurl "${BASE}/api/feed?indicator=0x43412801d29861ecc4c4d86e5becfd16af86a67b"`,
   },
   {
@@ -31,7 +31,7 @@ const ENDPOINTS: { n: string; method: "GET" | "POST"; path: string; title: strin
     method: "POST",
     path: "/api/scan/wallet",
     title: "Wallet approval scan",
-    body: "Reads a wallet's real approval history on-chain, rates every live approval, and returns an unsigned revoke transaction for each. Read-only: Sentinel never moves funds.",
+    body: "Reads a wallet's real approval history on-chain, rates every live approval, and returns an unsigned revoke transaction for each. Read-only: Watchdog never moves funds.",
     curl: `curl -X POST ${BASE}/api/scan/wallet \\\n  -H 'content-type: application/json' \\\n  -d '{"address":"0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"}'`,
   },
   {
@@ -63,7 +63,7 @@ export default function DevelopersPage() {
           </h1>
           <div>
             <p className="text-sm leading-6 text-white/65">
-              Sentinel is free for people. Wallets, exchanges and dApps pay to query the Reppo-verified threat feed and the
+              Watchdog is free for people. Wallets, exchanges and dApps pay to query the Reppo-verified threat feed and the
               plain-English explainer API, so their users get the same protection at the moment of signing.
             </p>
             <p className="label-mono mt-4 text-accent">Free tier now · API keys for wallets, exchanges and dApps</p>
@@ -101,7 +101,7 @@ export default function DevelopersPage() {
             <LiveFeed />
           </div>
           <p className="mt-3 text-xs text-white/40">
-            Real data from Sentinel&apos;s threat memory. Only threats with a Reppo &quot;accept&quot; appear here.
+            Real data from Watchdog&apos;s threat memory. Only threats with a Reppo &quot;accept&quot; appear here.
           </p>
         </div>
       </Container>

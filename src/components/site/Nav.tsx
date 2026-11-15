@@ -33,10 +33,10 @@ export function Nav() {
         <Link
           href="/"
           className="flex h-11 items-center gap-2 rounded-full bg-white/80 px-4 font-medium tracking-tight shadow-[0_0_1px_rgb(30_42_40/.2),0_6px_16px_-6px_rgb(30_42_40/.25)] backdrop-blur"
-          aria-label="Sentinel home"
+          aria-label="Watchdog home"
         >
-          <Logo className="h-5 w-5" />
-          Sentinel
+          <Logo className="h-7 w-7" />
+          Watchdog
         </Link>
 
         <nav

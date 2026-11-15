@@ -24,7 +24,7 @@ export function MemoryCatchBanner({ analysis, dark }: { analysis: Analysis; dark
         <div className="min-w-0">
           <p className={cn("font-medium", dark ? "text-white" : "text-ink")}>Caught from verified threat memory</p>
           <p className={cn("mt-1 text-sm leading-6", dark ? "text-white/70" : "text-ink-soft")}>
-            Someone else met this attacker first. Reppo verified it, so Sentinel blocked it for you straight away.
+            Someone else met this attacker first. Reppo verified it, so Watchdog blocked it for you straight away.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Stat dark={dark} label="AI calls" value="0" />

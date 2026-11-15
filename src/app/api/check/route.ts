@@ -188,7 +188,7 @@ function subjectLabel(p: CheckPayload): string {
     `A website: ${n.value}`,
     n.url ? `Full link pasted: ${n.url}` : null,
     p.brandImpersonated
-      ? `Sentinel's rule engine notes that this hostname contains the brand name of ${p.brandImpersonated} but is NOT that domain.`
+      ? `Watchdog's rule engine notes that this hostname contains the brand name of ${p.brandImpersonated} but is NOT that domain.`
       : null,
     n.note ? `The pasted text had to be cleaned up: ${n.note}.` : null,
   ]
@@ -201,7 +201,7 @@ function extraEvidence(p: CheckPayload): string[] {
   const out: string[] = [];
   if (p.brandImpersonated) {
     out.push(
-      `Sentinel rule engine: the hostname ${p.normalised.value} borrows the brand name of ${p.brandImpersonated} without being that domain. This is the classic fake-dApp pattern.`,
+      `Watchdog rule engine: the hostname ${p.normalised.value} borrows the brand name of ${p.brandImpersonated} without being that domain. This is the classic fake-dApp pattern.`,
     );
   }
   if (p.account?.kind === "delegated-eoa") {
@@ -231,7 +231,7 @@ function buildPacket(p: CheckPayload): string {
   return JSON.stringify(
     {
       disclosure:
-        "Checked through Sentinel's /api/check endpoint on a real indicator pasted by a user. Every source lookup and the SERV analysis were live calls. No part of this is simulated.",
+        "Checked through Watchdog's /api/check endpoint on a real indicator pasted by a user. Every source lookup and the SERV analysis were live calls. No part of this is simulated.",
       subject: { kind: p.normalised.kind, value: p.normalised.value, pastedAs: p.normalised.raw, cleanup: p.normalised.note },
       onChain: p.account ?? null,
       ruleEngine: p.brandImpersonated ? { brandImpersonation: p.brandImpersonated } : null,
@@ -275,7 +275,7 @@ function respond(p: CheckPayload) {
     evidence: p.reports,
     honesty:
       p.flaggedBy.length > 0
-        ? "At least one public source reports this indicator. That is strong evidence, but Sentinel still shows you every source so you can judge."
+        ? "At least one public source reports this indicator. That is strong evidence, but Watchdog still shows you every source so you can judge."
         : "No public source reports this indicator. That is NOT proof it is safe: most scams are too new to be listed anywhere.",
   };
 }

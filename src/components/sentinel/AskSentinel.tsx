@@ -26,7 +26,7 @@ export function AskSentinel({ action, analysis, dark }: { action: WalletAction; 
 
   return (
     <section>
-      <h4 className={cn("label-mono mb-3", dark ? "text-white/45" : "text-ink-soft")}>Ask Sentinel</h4>
+      <h4 className={cn("label-mono mb-3", dark ? "text-white/45" : "text-ink-soft")}>Ask Watchdog</h4>
       <div className="space-y-3">
         {thread.map((m, i) => (
           <div key={i} className="space-y-2 text-sm">

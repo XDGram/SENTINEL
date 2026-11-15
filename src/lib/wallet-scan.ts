@@ -1,7 +1,7 @@
 // Wallet approval scanner: finds live ERC-20 approvals a real address has
 // granted, and prepares the revoke transaction for the user to sign.
 //
-// Sentinel is strictly read-only. It reads allowances with eth_call and builds
+// Watchdog is strictly read-only. It reads allowances with eth_call and builds
 // unsigned approve(spender, 0) calldata. It never holds a key, never sends a
 // transaction and never moves funds.
 //
@@ -115,7 +115,7 @@ export interface ApprovalFinding {
   /** Why this risk level, in plain words, each item backed by a source. */
   reasons: string[];
   spenderName?: string;
-  /** True when the spender is in Sentinel's verified-protocol list. */
+  /** True when the spender is in Watchdog's verified-protocol list. */
   knownProtocol: boolean;
   /** A source flags this spender, but it is a widely used protocol contract. */
   disputed: boolean;
@@ -523,7 +523,7 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
         to: pair.token.address,
         data: encodeApprove(spender, BigInt(0)),
         value: "0x0",
-        note: "Unsigned approve(spender, 0) calldata. Sentinel never signs or sends it; you do, from your own wallet.",
+        note: "Unsigned approve(spender, 0) calldata. Watchdog never signs or sends it; you do, from your own wallet.",
       },
     };
   });

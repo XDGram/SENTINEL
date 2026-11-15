@@ -1,4 +1,4 @@
-// Typed client for Sentinel's API. Browser-safe: only type imports from server modules.
+// Typed client for Watchdog's API. Browser-safe: only type imports from server modules.
 
 import type {
   Analysis,
@@ -35,7 +35,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
     });
   } catch {
-    throw new ApiError("Can't reach Sentinel. Check your connection and try again.", 0);
+    throw new ApiError("Can't reach Watchdog. Check your connection and try again.", 0);
   }
   const body = (await res.json().catch(() => null)) as (T & { error?: string; message?: string }) | null;
   if (!res.ok && !(res.status === 201)) {

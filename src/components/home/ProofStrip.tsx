@@ -81,7 +81,7 @@ export function ProofStrip() {
         </div>
       )}
       <p className="text-xs text-white/40">
-        Every number here is read from Sentinel&apos;s threat memory. No benchmark has been run, so we don&apos;t claim a catch rate.
+        Every number here is read from Watchdog&apos;s threat memory. No benchmark has been run, so we don&apos;t claim a catch rate.
       </p>
     </div>
   );

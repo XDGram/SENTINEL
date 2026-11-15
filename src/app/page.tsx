@@ -17,7 +17,7 @@ export default function Home() {
             <span className="italic text-ink/80">Wallet safety that learns.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-ink-soft">
-            Sentinel explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every
+            Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every
             time an attack is verified.
           </p>
           <div className="mt-10 text-left">
@@ -38,12 +38,12 @@ export default function Home() {
             </h2>
             <p className="text-sm leading-6 text-white/65">
               Most crypto losses come from signatures and lookalike addresses people don&apos;t understand, not stolen seed
-              phrases. Sentinel steps in before you sign, shows its evidence, and offers a safe fix.
+              phrases. Watchdog steps in before you sign, shows its evidence, and offers a safe fix.
             </p>
           </div>
 
           <div className="mt-12">
-            <MonoLabel className="text-white/40">[N.01] &gt; How Sentinel protects you</MonoLabel>
+            <MonoLabel className="text-white/40">[N.01] &gt; How Watchdog protects you</MonoLabel>
             <div className="mt-5">
               <HowItWorks />
             </div>

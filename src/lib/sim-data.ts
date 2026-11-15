@@ -24,7 +24,7 @@ export const ADA_ADDR = "0x9C1e5A7b3D8f2E06a4C9b1F7d3E8a2C6b0D4f7E3";
 // Simulated: poisoning addresses are generated per victim, so this one is made up.
 export const POISONER = "0x7a3F1b8c09E2a4D7f3B6e015C8a9D2b47E0fd91B";
 
-// Attacker spender behind the fake "USDT rewards" sites (new to Sentinel's memory).
+// Attacker spender behind the fake "USDT rewards" sites (new to Watchdog's memory).
 // Real address listed in ScamSniffer's blacklist (GoPlus: phishing activities).
 export const DRAINER_SPENDER = "0x43412801d29861ecc4c4d86e5becfd16af86a67b";
 

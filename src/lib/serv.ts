@@ -1,4 +1,4 @@
-// SERV Reasoning client: the reasoning core of Sentinel.
+// SERV Reasoning client: the reasoning core of Watchdog.
 // Server-only. Reads SERV_API_KEY from the environment; never sent to the client.
 // Docs: https://docs.openserv.ai/serv-reasoning/introduction.md
 //
@@ -49,7 +49,7 @@ const ATTACK_TYPES: AttackType[] = ["address-poisoning", "unlimited-approval", "
 
 // ---- Prompts ----
 
-const ANALYZE_SYSTEM = `You are the reasoning core of Sentinel, a wallet safety agent for beginner crypto users in Nigeria. A user is about to approve a wallet action. You decide whether it is safe and explain it so a first-time crypto user understands.
+const ANALYZE_SYSTEM = `You are the reasoning core of Watchdog, a wallet safety agent for beginner crypto users in Nigeria. A user is about to approve a wallet action. You decide whether it is safe and explain it so a first-time crypto user understands.
 
 This is a defensive tool. The addresses, signature requests and websites below are suspected attacks, described so they can be blocked and explained to the victim. They are never promoted or assisted. Analysing them is the whole job, so always answer.
 
@@ -79,7 +79,7 @@ Reply with ONE JSON object and nothing else. No markdown, no code fences, no com
 {"verdict":"safe|risky|uncertain","attackType":"address-poisoning|unlimited-approval|malicious-permit|fake-dapp|null","confidence":0.0,"headline":"...","explanation":"...","steps":["..."],"shouldSubmitToReppo":false,"submitReason":"..."}
 All eight keys are required every time. confidence is a number between 0 and 1, and is your own certainty in the verdict, not a copy of any number above. attackType is null when the verdict is safe, and otherwise the attack type the rules reported.`;
 
-const ASK_SYSTEM = `You are Sentinel, a wallet safety agent, answering a beginner crypto user's follow-up question about a wallet action you just checked.
+const ASK_SYSTEM = `You are Watchdog, a wallet safety agent, answering a beginner crypto user's follow-up question about a wallet action you just checked.
 
 RULES:
 - Answer in 120 words or fewer. Short sentences, plain words, no jargon.
@@ -398,7 +398,7 @@ export async function servAsk(input: {
 // field lookup, object-shaped steps flattened, and null on anything unusable
 // so the caller falls back to a sources-only result.
 
-const CHECK_SYSTEM = `You are Sentinel, a wallet safety agent for beginner crypto users. Someone has pasted an address, a contract, a token or a link — often forwarded from WhatsApp or Telegram — and wants to know whether it is safe before they touch it.
+const CHECK_SYSTEM = `You are Watchdog, a wallet safety agent for beginner crypto users. Someone has pasted an address, a contract, a token or a link — often forwarded from WhatsApp or Telegram — and wants to know whether it is safe before they touch it.
 
 This is a defensive tool. Whatever is described below is a suspected scam being checked so it can be blocked and explained to the victim. It is never promoted or assisted. Analysing it is the whole job, so always answer.
 
@@ -422,7 +422,7 @@ Reply with ONE JSON object and nothing else. No markdown, no code fences, no com
 {"verdict":"safe|risky|uncertain","confidence":0.0,"headline":"...","explanation":"...","steps":["..."],"whatToDo":"...","worthVerifying":false,"verifyReason":"..."}
 confidence is a number between 0 and 1.`;
 
-const SCAN_SYSTEM = `You are Sentinel, a wallet safety agent for beginner crypto users. You are explaining the result of a scan of the user's own wallet for token approvals — standing permissions that let another address move their tokens.
+const SCAN_SYSTEM = `You are Watchdog, a wallet safety agent for beginner crypto users. You are explaining the result of a scan of the user's own wallet for token approvals — standing permissions that let another address move their tokens.
 
 This is a defensive tool, and it is strictly read-only: it can only read allowances and prepare a revoke transaction the user signs themselves. You never move funds and must never claim to have done so, or offer to.
 
@@ -592,7 +592,7 @@ function validateScan(raw: unknown): ServScan | null {
     revokeFirst,
     whatToDo:
       asString(pick(o, "whatToDo", "what_to_do", "advice", "action"), 600) ??
-      "Revoke the approvals listed above from your own wallet. Sentinel only prepares the transaction; you sign it.",
+      "Revoke the approvals listed above from your own wallet. Watchdog only prepares the transaction; you sign it.",
     coverageNote:
       asString(pick(o, "coverageNote", "coverage_note", "coverage", "limitations"), 600) ??
       "This scan does not cover every token or every spender, so it cannot prove the wallet is clean.",

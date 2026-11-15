@@ -8,7 +8,7 @@ export function Footer() {
       <Container className="grid gap-10 border-t border-line-dark py-12 md:grid-cols-[1.2fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2 text-white">
-            <Logo className="h-5 w-5" /> <span className="font-medium">Sentinel</span>
+            <Logo onDark className="h-7 w-7" /> <span className="font-medium">Watchdog</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-6">
             Wallet safety that learns. Built for SERV Hackathon 02, Reppo track, on SERV Reasoning and Reppo evaluations.
@@ -24,7 +24,7 @@ export function Footer() {
         <div>
           <MonoLabel className="text-white/40">What&apos;s simulated</MonoLabel>
           <p className="mt-3 text-sm leading-6">
-            The demo wallets (Ada and Bayo), their balances and history, and the lookalike poisoning address. Sentinel never
+            The demo wallets (Ada and Bayo), their balances and history, and the lookalike poisoning address. Watchdog never
             moves funds.
           </p>
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">

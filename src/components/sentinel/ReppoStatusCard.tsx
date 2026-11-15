@@ -48,7 +48,7 @@ export function ReppoStatusCard({
           <div className="min-w-0 flex-1">
             <p className={title}>New attacker. Help protect the next person.</p>
             <p className={sub}>
-              {reason ?? "SERV recommends sending this to Reppo's independent evaluators."} If Reppo accepts it, Sentinel blocks
+              {reason ?? "SERV recommends sending this to Reppo's independent evaluators."} If Reppo accepts it, Watchdog blocks
               this attacker instantly for every user.
             </p>
             {submit.isError && (
@@ -94,7 +94,7 @@ export function ReppoStatusCard({
           <div className="min-w-0">
             <p className={title}>Pending at Reppo</p>
             <p className={sub}>
-              Independent evaluators are reviewing Sentinel&apos;s evidence. This usually takes a few minutes; this page checks
+              Independent evaluators are reviewing Watchdog&apos;s evidence. This usually takes a few minutes; this page checks
               every 15 seconds.
             </p>
             <BarLoader className={cn("mt-3 w-full max-w-xs", dark ? "text-white" : "text-ink")} />
@@ -127,7 +127,7 @@ export function ReppoStatusCard({
             {threat?.reppoScore != null ? `Score ${threat.reppoScore}/100. ` : ""}
             {verified
               ? "The next person who meets this attacker is blocked instantly."
-              : "Sentinel only trusts what Reppo accepts, so this attacker is not shared yet."}
+              : "Watchdog only trusts what Reppo accepts, so this attacker is not shared yet."}
           </p>
           {threat?.reppoEvalId && (
             <p className={cn("addr mt-2 text-xs", dark ? "text-white/45" : "text-ink-soft")}>eval {threat.reppoEvalId}</p>

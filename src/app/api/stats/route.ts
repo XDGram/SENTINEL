@@ -1,5 +1,5 @@
 // Learning analytics. Every number is counted from stored threats and
-// threat_events; nothing is estimated. There is no catch rate: Sentinel has no
+// threat_events; nothing is estimated. There is no catch rate: Watchdog has no
 // benchmark set to measure one against.
 
 import { NextResponse } from "next/server";

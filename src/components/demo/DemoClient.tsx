@@ -15,8 +15,8 @@ import { AnalysisPanel, type PanelState } from "./AnalysisPanel";
 type Id = "A" | "B";
 
 const STEPS = [
-  { n: "01", title: "Ada meets a new scam", body: "“Claim a token airdrop”. Sentinel stops it and recommends verifying the attacker with Reppo." },
-  { n: "02", title: "Reppo verifies", body: "Independent evaluators review Sentinel's evidence. Accepted attackers enter the shared memory." },
+  { n: "01", title: "Ada meets a new scam", body: "“Claim a token airdrop”. Watchdog stops it and recommends verifying the attacker with Reppo." },
+  { n: "02", title: "Reppo verifies", body: "Independent evaluators review Watchdog's evidence. Accepted attackers enter the shared memory." },
   { n: "03", title: "Bayo is protected", body: "“Claim a rewards drop”: same drainer, different site. Blocked instantly from memory, 0 AI calls." },
 ];
 
@@ -65,8 +65,8 @@ export function DemoClient() {
           outcome: "sent",
           message:
             action.kind === "send"
-              ? `${action.amount} ${action.token.symbol} sent. Sentinel found nothing wrong.`
-              : "Done. Sentinel found nothing wrong.",
+              ? `${action.amount} ${action.token.symbol} sent. Watchdog found nothing wrong.`
+              : "Done. Watchdog found nothing wrong.",
         });
       } else {
         setPhone(id, { view: "paused", scenario, action, analysis: a });

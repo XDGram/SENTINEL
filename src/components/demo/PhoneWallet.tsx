@@ -48,7 +48,7 @@ export function PhoneWallet({ wallet, scenarios, state, active, onPick, onConfir
       <div className="flex items-center justify-between px-5 pt-4 text-[11px] text-white/45">
         <span className="label-mono">Simulated wallet</span>
         <span className="flex items-center gap-1 text-accent">
-          <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Sentinel on
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Watchdog on
         </span>
       </div>
 
@@ -187,7 +187,7 @@ function Review({
       <div className="mt-auto pt-5">
         {checking ? (
           <div className="flex justify-center rounded-2xl bg-accent/10 py-3.5 text-sm font-medium text-accent">
-            <RingsLoader label="Sentinel is checking…" />
+            <RingsLoader label="Watchdog is checking…" />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2.5">
@@ -224,12 +224,12 @@ function Paused({ analysis, onCancel }: { analysis: Analysis; onCancel: () => vo
         className={cn("rounded-2xl p-4 ring-1", m.bg, m.ring)}
       >
         <p className={cn("flex items-center gap-2 text-sm font-semibold", m.text)}>
-          <ShieldAlert className="h-5 w-5" aria-hidden /> Sentinel paused this
+          <ShieldAlert className="h-5 w-5" aria-hidden /> Watchdog paused this
         </p>
         <p className="mt-2 text-[15px] leading-snug text-white">{plain(analysis.headline)}</p>
       </motion.div>
       <p className="mt-4 text-sm leading-6 text-white/55">
-        Nothing has been sent or signed. See what Sentinel found
+        Nothing has been sent or signed. See what Watchdog found
         <span className="hidden lg:inline"> on the right</span>
         <span className="lg:hidden"> below</span>.
       </p>

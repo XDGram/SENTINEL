@@ -1,4 +1,4 @@
-# Sentinel front-end design spec
+# Watchdog front-end design spec
 
 The single source of truth for the UI. Both build sessions follow it exactly.
 
@@ -52,24 +52,24 @@ The single source of truth for the UI. Both build sessions follow it exactly.
 ## Pages and sections
 
 ### `/`: Home
-1. **Nav:** wordmark "Sentinel" left; links `Check`, `Demo`, `Threat memory`, `Developers`; right "Try the demo" dark pill.
+1. **Nav:** wordmark "Watchdog" left; links `Check`, `Demo`, `Threat memory`, `Developers`; right "Try the demo" dark pill.
 2. **Hero** (light canvas):
    - Serif headline, 2 lines: *"Know before you sign."* / *"Wallet safety that learns."*
-   - Sub-line: "Sentinel explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every time an attack is verified."
-3. **Ask Sentinel box** (dark `ink`, centred, ~560px):
+   - Sub-line: "Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every time an attack is verified."
+3. **Ask Watchdog box** (dark `ink`, centred, ~560px):
    - Placeholder: "Paste a wallet address, contract, or a suspicious link…"
    - Auto-detects input: a 0x address shows two choices, *Scan this wallet's approvals* and *Check this address*. Anything else is sent to `/api/check`. Messy chat text is fine, since the backend normalises it.
    - Chips under the text: `Scan my wallet`, `Check a link`, `Try the demo`; round submit button on the right.
    - Results open **below the box** in a large card (light), animated in.
-4. **Threat field band:** the full-width particle canvas between the light and dark sections. Neutral dots are decorative; **highlighted pink/red dots = the real verified threats from `/api/feed`**, with a tiny mono caption: `● n verified attackers in Sentinel's memory` (real `count`).
-5. **Dark section, "How Sentinel protects you":** five numbered cards in secondary-reference style (`// 001` … `// 005`): Rules → Live scam sources → SERV Reasoning → Reppo verification → Shared threat memory. One plain sentence each.
+4. **Threat field band:** the full-width particle canvas between the light and dark sections. Neutral dots are decorative; **highlighted pink/red dots = the real verified threats from `/api/feed`**, with a tiny mono caption: `● n verified attackers in Watchdog's memory` (real `count`).
+5. **Dark section, "How Watchdog protects you":** five numbered cards in secondary-reference style (`// 001` … `// 005`): Rules → Live scam sources → SERV Reasoning → Reppo verification → Shared threat memory. One plain sentence each.
 6. **Proof of learning strip** (dark): real numbers from `/api/stats`: threats discovered, Reppo verified, rejected, repeat attacks blocked, investigations avoided. Show the latest Reppo evaluations (eval ID mono, score, decision). **No invented numbers;** if a value is 0, show 0.
 7. **Footer:** short "What's simulated vs real" note and the links.
 
 ### `/demo`: Two-wallet simulator (the judged demo)
 - Two phone-style wallet cards side by side (stacked on mobile): **Ada (Lagos)** and **Bayo (Kano)**. Data and scenarios come from `src/lib/sim-data.ts` (`initialWallets`, `SCENARIOS`), with a "Simulated wallet" badge on each.
-- Pick a scenario, then a review screen (send / approve / sign), then **Confirm**. A "Sentinel is checking…" state calls `POST /api/analyze`.
-- **Intercept moment** (risky/uncertain): the phone shows "Sentinel paused this", and the **Analysis panel** slides in (right on desktop, bottom sheet on mobile):
+- Pick a scenario, then a review screen (send / approve / sign), then **Confirm**. A "Watchdog is checking…" state calls `POST /api/analyze`.
+- **Intercept moment** (risky/uncertain): the phone shows "Watchdog paused this", and the **Analysis panel** slides in (right on desktop, bottom sheet on mobile):
   - verdict pill + one-line headline + plain explanation
   - **Evidence list**: each claim with a source badge (`Rules`, `Chain`, `GoPlus`, `ScamSniffer`, `MetaMask`, `Threat memory`, `Reppo`) and an external link when there is one
   - **Reasoning trace**: mono, numbered, collapsible
@@ -85,7 +85,7 @@ The single source of truth for the UI. Both build sessions follow it exactly.
   - the scanner's summary headline
   - `riskCounts` as a segmented bar
   - the **top 10** approvals: token, spender name or short address, risk pill, reasons, "disputed" note when present
-  - a **Revoke** action that shows the prepared transaction (`to`, `data`) with copy buttons and the text "You sign this in your own wallet. Sentinel never moves funds."
+  - a **Revoke** action that shows the prepared transaction (`to`, `data`) with copy buttons and the text "You sign this in your own wallet. Watchdog never moves funds."
   - the coverage/limitations block in a muted mono box
 
 ### `/memory`: Threat memory timeline

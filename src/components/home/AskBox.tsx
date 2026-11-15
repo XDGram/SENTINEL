@@ -59,7 +59,7 @@ export function AskBox() {
         className="uv-glow mx-auto w-full max-w-[600px] rounded-[var(--radius-box)] p-[1.5px] shadow-[var(--shadow-box)]"
       >
         <div className="rounded-[calc(var(--radius-box)-1.5px)] bg-ink p-4 text-white">
-        <label htmlFor="ask" className="sr-only">Ask Sentinel</label>
+        <label htmlFor="ask" className="sr-only">Ask Watchdog</label>
         <textarea
           id="ask"
           ref={inputRef}
@@ -93,7 +93,7 @@ export function AskBox() {
               <Sparkles className="h-3.5 w-3.5" /> Try the demo
             </Link>
           </div>
-          <SendButton onClick={submit} label="Ask Sentinel" />
+          <SendButton onClick={submit} label="Ask Watchdog" />
         </div>
 
         <AnimatePresence>

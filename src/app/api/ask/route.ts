@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "analysis is malformed" }, { status: 400 });
   }
   if (servAvailable() && !takeServBudget()) {
-    return NextResponse.json({ answer: "Sentinel has used today's AI budget. Please try again tomorrow.", servUsed: false } satisfies AskResponse);
+    return NextResponse.json({ answer: "Watchdog has used today's AI budget. Please try again tomorrow.", servUsed: false } satisfies AskResponse);
   }
   const answer = await servAsk({ ...body, question, language: "en" });
   const res: AskResponse = answer

@@ -135,7 +135,7 @@ function ApprovalRow({ a }: { a: ApprovalFinding }) {
                 <MonoLabel className="text-white/50">Revoke transaction (you sign it)</MonoLabel>
                 <CopyRow label="to" value={a.revoke.to} />
                 <CopyRow label="data" value={a.revoke.data} />
-                <p className="mt-2 text-xs text-white/60">You sign this in your own wallet. Sentinel never moves funds.</p>
+                <p className="mt-2 text-xs text-white/60">You sign this in your own wallet. Watchdog never moves funds.</p>
               </div>
             </div>
           </motion.div>
