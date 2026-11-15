@@ -19,7 +19,7 @@ export default function Home() {
           <h1 className="font-display mx-auto mt-5 max-w-3xl text-[44px] leading-[1.04] text-ink sm:text-[68px]">
             <WordsReveal text="Spots a scam once." />
             <br />
-            <WordsReveal text="Stops it for everyone." className="text-ink/75 italic" delay={0.35} />
+            <WordsReveal text="Stops it for everyone." className="text-ink/75" delay={0.35} />
           </h1>
           <Reveal delay={0.7}>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-ink-soft">
