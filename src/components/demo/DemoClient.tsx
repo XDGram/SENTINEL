@@ -222,9 +222,8 @@ export function DemoClient() {
           {/* Spoken walkthrough: what is simulated, what is real, and how SERV
               and Reppo turn one person's close call into everyone's block. */}
           <PageIntro
-            src="/intro-demo.mp3"
-            seconds={39}
-            seenKey="watchdog:intro-demo-seen"
+              page="demo"
+              seenKey="watchdog:intro-demo-seen"
             label="Hear how this demo works"
             className="mt-5 justify-start"
           />

@@ -35,10 +35,8 @@ export default function Home() {
               reading path, between the sub-line and the input box. */}
           <Reveal delay={0.85}>
             <PageIntro
-              src="/intro-watchdog.mp3"
-              seconds={24}
+              page="home"
               seenKey="watchdog:intro-seen"
-              muteCueS={21}
               className="mt-7"
             />
           </Reveal>

@@ -15,6 +15,9 @@ import { Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useVoice } from "./VoiceProvider";
+import { introClip, type IntroPage } from "@/lib/intro-clips";
+import { getLanguage, setLanguage, SUPPORTED_LANGUAGES, subscribeLanguage } from "@/lib/client/language";
+import type { Language } from "@/lib/types";
 
 /** Set once any introduction has been played, so a guided visitor is not
  *  asked again on the next page while someone who ignored it is left alone. */
@@ -33,21 +36,20 @@ const playedThisLoad = new Set<string>();
 type Phase = "hidden" | "offered" | "playing";
 
 export interface PageIntroProps {
-  /** Static clip under /public. */
-  src: string;
-  /** Rounded length, shown on the button so nobody is ambushed. */
-  seconds: number;
+  /** Which page this introduces; the recording is chosen by language. */
+  page: IntroPage;
   /** Per-page key, so hearing one page does not silence the others within
    *  the same page load. */
   seenKey: string;
   label?: string;
-  /** Seconds at which the mute control should light up, if this clip names it. */
-  muteCueS?: number;
   className?: string;
 }
 
-export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog works", muteCueS, className }: PageIntroProps) {
+export function PageIntro({ page, seenKey, label = "Hear how Watchdog works", className }: PageIntroProps) {
   const voice = useVoice();
+  const [lang, setLang] = useState<Language>(getLanguage);
+  const clip = introClip(page, lang);
+  const { src, seconds, muteCue: muteCueS } = clip;
   const [phase, setPhase] = useState<Phase>("hidden");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
@@ -59,6 +61,9 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
   // arrives a tick later, from storage, so it must be read through a ref.
   const voiceRef = useRef(voice);
   voiceRef.current = voice;
+  // The clip has to follow the language chosen anywhere else on the page.
+  const srcRef = useRef(src);
+  srcRef.current = src;
 
   const finish = useCallback(() => {
     setPhase("hidden");
@@ -77,7 +82,7 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
       v.setMuted(false);
     }
     startingRef.current = true;
-    const a = (audioRef.current ??= new Audio(src));
+    const a = (audioRef.current ??= new Audio(srcRef.current));
     a.preload = "auto";
     try {
       await a.play();
@@ -96,7 +101,36 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
       // Not essential.
     }
     return true;
-  }, [src]);
+  }, []);
+
+  /** Restart the introduction in another language, from the beginning. */
+  const switchLanguage = useCallback(
+    (next: Language) => {
+      if (next === lang) return;
+      setLanguage(next);
+      const a = audioRef.current;
+      if (a) a.pause();
+      audioRef.current = null;
+      startedRef.current = false;
+      startingRef.current = false;
+      voiceRef.current?.setMuteHighlight(false);
+      const nextSrc = introClip(page, next).src;
+      srcRef.current = nextSrc;
+      // Restart only if it was already speaking; otherwise just swap the clip
+      // the button will play.
+      if (phase === "playing") {
+        const audio = (audioRef.current = new Audio(nextSrc));
+        startedRef.current = true;
+        startingRef.current = true;
+        void audio.play().catch(() => {
+          startedRef.current = false;
+          startingRef.current = false;
+          setPhase("offered");
+        });
+      }
+    },
+    [lang, page, phase],
+  );
 
   const skip = useCallback(() => {
     const a = audioRef.current;
@@ -106,6 +140,11 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
     }
     finish();
   }, [finish]);
+
+  useEffect(() => {
+    setLang(getLanguage());
+    return subscribeLanguage(setLang);
+  }, []);
 
   useEffect(() => {
     const forced = new URLSearchParams(window.location.search).get("intro") === "1";
@@ -201,6 +240,26 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
             </span>
             Watchdog is explaining this page
           </span>
+          {/* Offered while it speaks, so someone who would rather hear this in
+              their own language does not have to find a setting first. */}
+          <span className="flex items-center gap-0.5 rounded-full bg-canvas p-0.5" role="radiogroup" aria-label="Language">
+            {SUPPORTED_LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                role="radio"
+                aria-checked={l.code === lang}
+                aria-label={`Explain in ${l.full}`}
+                onClick={() => switchLanguage(l.code)}
+                className={cn(
+                  "rounded-full px-2 py-1 text-[10px] font-medium tracking-wide transition-colors",
+                  l.code === lang ? "bg-ink text-white" : "text-ink-soft hover:text-ink",
+                )}
+              >
+                {l.label}
+              </button>
+            ))}
+          </span>
           <button
             type="button"
             onClick={skip}
@@ -231,6 +290,24 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
         {label}
         <span className="label-mono text-ink-soft group-hover:text-white/60">{seconds}s</span>
       </button>
+      <span className="flex items-center gap-0.5 rounded-full bg-canvas p-0.5" role="radiogroup" aria-label="Language">
+        {SUPPORTED_LANGUAGES.map((l) => (
+          <button
+            key={l.code}
+            type="button"
+            role="radio"
+            aria-checked={l.code === lang}
+            aria-label={`Explain in ${l.full}`}
+            onClick={() => switchLanguage(l.code)}
+            className={cn(
+              "rounded-full px-2 py-1 text-[10px] font-medium tracking-wide transition-colors",
+              l.code === lang ? "bg-ink text-white" : "text-ink-soft hover:text-ink",
+            )}
+          >
+            {l.label}
+          </button>
+        ))}
+      </span>
       <button
         type="button"
         onClick={finish}

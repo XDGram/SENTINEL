@@ -59,9 +59,8 @@ export function Dashboard() {
       {/* Spoken explanation of the sample wallet, scanning your own, and that
           Watchdog only ever prepares a revoke for you to sign. */}
       <PageIntro
-        src="/intro-dashboard.mp3"
-        seconds={31}
-        seenKey="watchdog:intro-dashboard"
+              page="dashboard"
+              seenKey="watchdog:intro-dashboard"
         label="Hear what this dashboard shows"
         className="justify-start pb-1"
       />
