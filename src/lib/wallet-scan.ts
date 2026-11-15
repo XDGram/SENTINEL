@@ -17,18 +17,25 @@
 
 import "server-only";
 import type { IntelReport, IntelSourceId } from "./types";
+export type { ApprovalRisk } from "./scan-abi";
 import {
   classifyCode,
   decodeAggregate3,
+  decodeDecimals,
+  decodeTokenString,
   decodeUint,
   encodeAggregate3,
   encodeAllowance,
   encodeApprove,
+  encodeNoArgs,
   formatAllowance,
   isAddress,
   isUnlimited,
   MULTICALL3,
+  SELECTOR,
+  assessRisk,
   type AccountCode,
+  type ApprovalRisk,
   type Call3,
 } from "./scan-abi";
 import { getLists } from "./intel/blocklists";
@@ -57,9 +64,44 @@ export const SCAN_TOKENS: ScanToken[] = [
   { symbol: "SHIB", address: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE", decimals: 18 },
 ];
 
-export type ScanMode = "A" | "B";
+/**
+ * Widely used spender contracts, each verified on-chain and against GoPlus's
+ * contract_name before being listed here. An approval to one of these is
+ * ordinary behaviour, not an attack, so it must not be reported as high risk
+ * merely for being unlimited.
+ *
+ * This list is additive to KNOWN_SPENDERS in sim-data.ts, which the demo
+ * scenarios use.
+ */
+export const KNOWN_PROTOCOLS: Record<string, string> = {
+  "0x000000000022d473030f116ddee9f6b43ac78ba3": "Uniswap Permit2",
+  "0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad": "Uniswap Universal Router",
+  "0x66a9893cc07d91d95644aedd05d03f95e1dba8af": "Uniswap Universal Router v2",
+  "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45": "Uniswap SwapRouter02",
+  "0xe592427a0aece92de3edee1f18e0157c05861564": "Uniswap V3 SwapRouter",
+  "0x0000000000001ff3684f28c67538d4d072c22734": "0x AllowanceHolder",
+  "0xdef1c0ded9bec7f1a1670819833240f027b25eff": "0x Exchange Proxy",
+  "0x1111111254eeb25477b68fb85ed929f73a960582": "1inch Aggregation Router V5",
+  "0x111111125421ca6dc452d289314280a0f8842a65": "1inch Aggregation Router V6",
+  "0xc92e8bdf79f0507f65a392b0ab4667716bfe0110": "CoW Protocol Vault Relayer",
+  "0x9008d19f58aabd9ed0d60971565aa8510560ab41": "CoW Protocol Settlement",
+  "0x00000000000000adc04c56bf30ac9d3c0aaf14dc": "OpenSea Seaport 1.5",
+  "0x0000000000000068f116a894984e2db1123eb395": "OpenSea Seaport 1.6",
+  "0x1e0049783f008a0085193e00003d00cd54003c71": "OpenSea Conduit",
+  "0x000000000000ad05ccc4f10045630fb830b95127": "Blur Exchange",
+  "0x39da41747a83aee658334415666f3ef92dd0d541": "Blur Swap",
+  "0x00000000000111abe46ff893f3b2fdf1f759a8a8": "Blur Execution Delegate",
+  "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2": "Aave V3 Pool",
+  "0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9": "Aave V2 Lending Pool",
+};
 
-export type ApprovalRisk = "critical" | "high" | "medium" | "low";
+/** Protocol name for a spender, from either list. */
+export function knownProtocolName(spender: string): string | undefined {
+  const a = spender.toLowerCase();
+  return KNOWN_PROTOCOLS[a] ?? KNOWN_SPENDERS[a];
+}
+
+export type ScanMode = "A" | "B";
 
 /** One live, non-zero approval. */
 export interface ApprovalFinding {
@@ -75,6 +117,10 @@ export interface ApprovalFinding {
   spenderName?: string;
   /** True when the spender is in Sentinel's verified-protocol list. */
   knownProtocol: boolean;
+  /** A source flags this spender, but it is a widely used protocol contract. */
+  disputed: boolean;
+  /** Advice for an approval that is not an attack but is worth tidying. */
+  note?: string;
   /** Sources that flagged the spender. */
   flaggedBy: IntelSourceId[];
   /** Unsigned transaction the user signs themselves to revoke. */
@@ -99,7 +145,12 @@ export interface WalletScanResult {
   address: string;
   chainId: number;
   account: AccountCode;
+  /** Every live approval found, worst risk first. */
   approvals: ApprovalFinding[];
+  /** The ten that matter most, for a UI that cannot show hundreds. */
+  top: ApprovalFinding[];
+  /** How many approvals sit at each risk level. */
+  riskCounts: Record<ApprovalRisk, number>;
   coverage: ScanCoverage;
   /** Spender reputation lookups, as evidence. */
   reports: IntelReport[];
@@ -152,6 +203,8 @@ interface Pair {
 const BATCH_SIZE = Number(process.env.SCAN_BATCH_SIZE ?? 1000);
 const CONCURRENCY = Number(process.env.SCAN_CONCURRENCY ?? 4);
 const TIME_BUDGET_MS = Number(process.env.SCAN_TIME_BUDGET_MS ?? 8000);
+/** A busy wallet can approve hundreds of spenders; each lookup is an API call. */
+const REPUTATION_LOOKUP_CAP = Number(process.env.SCAN_REPUTATION_CAP ?? 40);
 
 interface SweepOutcome {
   found: { pair: Pair; allowance: bigint }[];
@@ -278,47 +331,55 @@ async function approvalPairsFromLogs(owner: string, chainId: number): Promise<{ 
   }
 }
 
-// ---- Risk assessment ----
+// ---- Token metadata ----
 
-function assessRisk(input: {
-  unlimited: boolean;
-  knownProtocol: boolean;
-  onScamList: boolean;
-  approval: ApprovalSecurity | null;
-}): { risk: ApprovalRisk; reasons: string[] } {
-  const { unlimited, knownProtocol, onScamList, approval } = input;
-  const reasons: string[] = [];
-  const serious = (approval?.maliciousBehavior ?? []).filter((b) => b !== "blacklist_doubt");
-
-  if (onScamList) reasons.push("The spender is on ScamSniffer's public scam address blacklist.");
-  if (serious.length) reasons.push(`GoPlus links the spender to ${serious.join(", ").replace(/_/g, " ")}.`);
-  if (approval?.doubtList && !serious.length) reasons.push("GoPlus lists the spender as a suspected blacklist entry.");
-  if (approval?.riskyApproval) reasons.push(`GoPlus: ${approval.riskyApproval}`);
-  if (approval?.isContract === false && !knownProtocol) {
-    reasons.push("The spender is a plain address, not a contract. Real protocols are contracts, so this is unusual for an approval.");
-  }
-  if (unlimited) reasons.push("The allowance is unlimited, so the spender can move the whole balance at any time.");
-  if (knownProtocol) reasons.push("The spender is a verified protocol contract in Sentinel's known-spender list.");
-  if (approval?.trustList) reasons.push("GoPlus lists the spender on its trusted-contract list.");
-
-  const flaggedByAnySource = onScamList || serious.length > 0;
-  let risk: ApprovalRisk;
-  if (flaggedByAnySource) {
-    risk = "critical";
-  } else if (approval?.doubtList || approval?.riskyApprovalFlagged) {
-    risk = unlimited ? "high" : "medium";
-  } else if (knownProtocol) {
-    // A verified protocol with an unlimited allowance is still worth trimming,
-    // but it is not an attack.
-    risk = unlimited ? "medium" : "low";
-  } else {
-    risk = unlimited ? "high" : "medium";
-  }
-  if (!reasons.length) reasons.push("No source reports this spender, and the allowance is limited.");
-  return { risk, reasons };
+export interface TokenMeta {
+  symbol?: string;
+  decimals?: number;
 }
 
+/**
+ * Read symbol() and decimals() for tokens whose details are not known in
+ * advance, in one Multicall batch. Anything that fails to decode is simply
+ * left unresolved, and the finding says the decimals are unknown rather than
+ * printing a number that could be wrong by orders of magnitude.
+ */
+export async function resolveTokenMetadata(tokens: string[]): Promise<Map<string, TokenMeta>> {
+  const out = new Map<string, TokenMeta>();
+  if (!tokens.length) return out;
+  const calls: Call3[] = [];
+  for (const t of tokens) {
+    calls.push({ target: t, allowFailure: true, callData: encodeNoArgs(SELECTOR.symbol) });
+    calls.push({ target: t, allowFailure: true, callData: encodeNoArgs(SELECTOR.decimals) });
+  }
+  try {
+    const results = decodeAggregate3(await ethCall(MULTICALL3, encodeAggregate3(calls), 8000));
+    tokens.forEach((t, i) => {
+      const sym = results[i * 2];
+      const dec = results[i * 2 + 1];
+      const meta: TokenMeta = {};
+      if (sym?.success) {
+        const parsed = decodeTokenString(sym.data);
+        if (parsed) meta.symbol = parsed.slice(0, 20);
+      }
+      if (dec?.success) {
+        const parsed = decodeDecimals(dec.data);
+        if (parsed !== null) meta.decimals = parsed;
+      }
+      out.set(t.toLowerCase(), meta);
+    });
+  } catch {
+    // Metadata is presentation only: a failure must not fail the scan.
+  }
+  return out;
+}
+
+// ---- Risk assessment ----
+
 const RISK_ORDER: Record<ApprovalRisk, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+
+/** How many approvals the UI summary and the SERV prompt carry. */
+export const TOP_N = 10;
 
 // ---- The scan ----
 
@@ -375,23 +436,44 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
     scamSpendersChecked = Math.max(0, spendersReached - knownSpenders.length);
   }
 
-  // Reputation: one lookup per distinct spender that actually has an allowance.
+  // Resolve symbol and decimals for tokens the fixed list does not cover, so a
+  // Mode B finding never reports a bare "token" or a raw amount.
+  const unresolved = [...new Set(sweep.found.filter((f) => !f.pair.token.decimals && f.pair.token.symbol === "token").map((f) => f.pair.token.address))];
+  const metadata = await resolveTokenMetadata(unresolved);
+
+  // Reputation: one lookup per distinct spender that actually holds an
+  // allowance, capped because a busy wallet can have hundreds and each one is
+  // an API request. Spenders no list recognises are looked up first, since
+  // those are the ones whose rating depends on it.
   const scamSet = new Set(scamAddresses);
   const distinct = [...new Set(sweep.found.map((f) => f.pair.spender))];
+  const priority = [...distinct].sort((a, b) => Number(Boolean(knownProtocolName(a))) - Number(Boolean(knownProtocolName(b))));
+  const toLookUp = priority.slice(0, REPUTATION_LOOKUP_CAP);
+  const skippedLookups = priority.length - toLookUp.length;
+
   const reputation = new Map<string, { approval: ApprovalSecurity | null; report: IntelReport }>();
-  const settled = await Promise.allSettled(distinct.map((s) => goplusApprovalSecurity(s, chainId)));
+  const settled = await Promise.allSettled(toLookUp.map((sp) => goplusApprovalSecurity(sp, chainId)));
   settled.forEach((r, i) => {
-    if (r.status === "fulfilled") reputation.set(distinct[i], { approval: r.value.detail, report: r.value.report });
+    if (r.status === "fulfilled") reputation.set(toLookUp[i], { approval: r.value.detail, report: r.value.report });
   });
 
   const reports: IntelReport[] = [];
+  const seenReport = new Set<string>();
   const approvals: ApprovalFinding[] = sweep.found.map(({ pair, allowance }) => {
     const spender = pair.spender;
     const onScamList = scamSet.has(spender);
-    const knownProtocol = Boolean(KNOWN_SPENDERS[spender]);
+    const protocolName = knownProtocolName(spender);
+    const knownProtocol = Boolean(protocolName);
     const rep = reputation.get(spender);
-    if (rep) reports.push(rep.report);
-    if (onScamList) {
+    const reputationChecked = reputation.has(spender);
+
+    // One evidence entry per spender, not per approval.
+    if (rep && !seenReport.has(`gp:${spender}`)) {
+      seenReport.add(`gp:${spender}`);
+      reports.push(rep.report);
+    }
+    if (onScamList && !seenReport.has(`ss:${spender}`)) {
+      seenReport.add(`ss:${spender}`);
       reports.push({
         source: "scamsniffer",
         sourceName: "ScamSniffer database",
@@ -402,21 +484,39 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
         fetchedAt: nowIso(),
       });
     }
+
+    const meta = metadata.get(pair.token.address.toLowerCase());
+    const symbol = pair.token.symbol !== "token" ? pair.token.symbol : (meta?.symbol ?? "unknown token");
+    const decimals = pair.token.decimals || meta?.decimals || 0;
+
     const unlimited = isUnlimited(allowance);
-    const { risk, reasons } = assessRisk({ unlimited, knownProtocol, onScamList, approval: rep?.approval ?? null });
+    const { risk, reasons, disputed, note } = assessRisk({
+      unlimited,
+      knownProtocol,
+      protocolName,
+      onScamList,
+      approval: rep?.approval ?? null,
+      reputationChecked,
+    });
     const flaggedBy: IntelSourceId[] = [];
     if (onScamList) flaggedBy.push("scamsniffer");
     if (rep?.report.verdict === "malicious" || rep?.report.verdict === "suspicious") flaggedBy.push("goplus");
 
     return {
-      token: { symbol: pair.token.symbol, address: pair.token.address, decimals: pair.token.decimals },
+      token: { symbol, address: pair.token.address, decimals },
       spender,
       allowanceRaw: allowance.toString(),
-      allowanceLabel: pair.token.decimals ? formatAllowance(allowance, pair.token.decimals, pair.token.symbol) : `${allowance.toString()} (raw units)`,
+      allowanceLabel: decimals
+        ? formatAllowance(allowance, decimals, symbol)
+        : isUnlimited(allowance)
+          ? `unlimited ${symbol}`
+          : `${allowance.toString()} ${symbol} (raw units; decimals unknown)`,
       unlimited,
       risk,
       reasons,
-      spenderName: KNOWN_SPENDERS[spender] ?? rep?.approval?.contractName ?? undefined,
+      disputed,
+      note,
+      spenderName: protocolName ?? rep?.approval?.contractName ?? undefined,
       knownProtocol,
       flaggedBy: [...new Set(flaggedBy)],
       revoke: {
@@ -428,7 +528,21 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
     };
   });
 
-  approvals.sort((a, b) => RISK_ORDER[a.risk] - RISK_ORDER[b.risk] || Number(b.unlimited) - Number(a.unlimited));
+  if (skippedLookups > 0) {
+    errors.push(`Spender reputation was checked for ${toLookUp.length} of ${priority.length} spenders; the rest are rated on the lists alone.`);
+  }
+
+  // Worst first, then unlimited before limited, then larger allowance first,
+  // so the top of the list is what a beginner should act on.
+  approvals.sort(
+    (a, b) =>
+      RISK_ORDER[a.risk] - RISK_ORDER[b.risk] ||
+      Number(b.unlimited) - Number(a.unlimited) ||
+      (BigInt(b.allowanceRaw) > BigInt(a.allowanceRaw) ? 1 : BigInt(b.allowanceRaw) < BigInt(a.allowanceRaw) ? -1 : 0),
+  );
+
+  const riskCounts: Record<ApprovalRisk, number> = { critical: 0, high: 0, medium: 0, low: 0 };
+  for (const a of approvals) riskCounts[a.risk]++;
 
   // ---- Honest coverage ----
   const limitations: string[] = [];
@@ -470,6 +584,8 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
     chainId,
     account,
     approvals,
+    top: approvals.slice(0, TOP_N),
+    riskCounts,
     coverage: {
       mode,
       limitations,
@@ -487,17 +603,35 @@ export async function scanWallet(addressInput: string, opts: ScanOptions = {}): 
   };
 }
 
-/** Compact scan summary for the SERV prompt. Keeps tokens low. */
+/**
+ * Compact scan summary for the SERV prompt: the top findings only, with a
+ * count of the rest. A wallet can hold hundreds of approvals, and sending them
+ * all would cost far more tokens than it adds.
+ */
 export function scanForPrompt(scan: WalletScanResult): string {
   if (!scan.approvals.length) return "No live non-zero approvals were found within this scan's coverage.";
-  return scan.approvals
-    .map((a, i) => {
-      const who = a.spenderName ? `${a.spenderName} (${a.spender})` : a.spender;
-      return [
-        `[A${i + 1}] ${a.allowanceLabel} of ${a.token.symbol} approved to ${who}`,
-        `  risk: ${a.risk}${a.flaggedBy.length ? ` · flagged by: ${a.flaggedBy.join(", ")}` : " · not flagged by any source"}`,
-        ...a.reasons.map((r) => `  - ${r}`),
-      ].join("\n");
-    })
+  const lines = scan.top.map((a, i) => {
+    const who = a.spenderName ? `${a.spenderName} (${a.spender})` : a.spender;
+    return [
+      `[A${i + 1}] ${a.allowanceLabel} of ${a.token.symbol} approved to ${who}`,
+      `  risk: ${a.risk}${a.disputed ? " (disputed)" : ""}${a.flaggedBy.length ? ` · flagged by: ${a.flaggedBy.join(", ")}` : " · not flagged by any source"}`,
+      ...a.reasons.map((r) => `  - ${r}`),
+      a.note ? `  note: ${a.note}` : null,
+    ]
+      .filter((l): l is string => l !== null)
+      .join("\n");
+  });
+  const counts = Object.entries(scan.riskCounts)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${k}`)
+    .join(", ");
+  const hidden = scan.approvals.length - scan.top.length;
+  return [
+    `${scan.approvals.length} live approval(s) in total: ${counts}.`,
+    hidden > 0 ? `The ${scan.top.length} most important are listed; ${hidden} lower-risk one(s) are not shown.` : null,
+    "",
+    ...lines,
+  ]
+    .filter((l): l is string => l !== null)
     .join("\n");
 }

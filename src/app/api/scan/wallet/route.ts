@@ -23,8 +23,10 @@ const ACCOUNT_NOTE: Record<WalletScanResult["account"]["kind"], string> = {
 /** Worst risk among the approvals actually found. */
 function riskLevelOf(scan: WalletScanResult): ScanRiskLevel {
   if (!scan.approvals.length) return "none";
-  const order: ScanRiskLevel[] = ["critical", "high", "medium", "low"];
-  return order.find((level) => scan.approvals.some((a) => a.risk === level)) ?? "low";
+  if (scan.riskCounts.critical > 0) return "critical";
+  if (scan.riskCounts.high > 0) return "high";
+  if (scan.riskCounts.medium > 0) return "medium";
+  return "low";
 }
 
 /** Scan a real address for live token approvals and prepare revoke transactions. */
@@ -84,11 +86,6 @@ export async function POST(req: Request) {
     servNote = "SERV Reasoning is not connected, so this is a sources-only result.";
   }
 
-  const counts = scan.approvals.reduce<Record<string, number>>((acc, a) => {
-    acc[a.risk] = (acc[a.risk] ?? 0) + 1;
-    return acc;
-  }, {});
-
   return NextResponse.json({
     address: scan.address,
     chainId: scan.chainId,
@@ -99,7 +96,9 @@ export async function POST(req: Request) {
     servModel: summary ? SERV_MODEL : undefined,
     servNote,
     approvalCount: scan.approvals.length,
-    riskCounts: counts,
+    riskCounts: scan.riskCounts,
+    /** The ten worth acting on, for a UI that cannot render hundreds. */
+    top: scan.top,
     approvals: scan.approvals,
     coverage: scan.coverage,
     evidence: scan.reports,

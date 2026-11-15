@@ -431,7 +431,10 @@ GROUNDING RULES — these override everything else:
 - Never invent an approval, a balance, a token, a spender or a number. Every amount you mention must appear in the findings exactly as given.
 - Cite findings by tag: [A1], [A2]... Use ONLY those tags.
 - Respect the coverage limits you are given. The scan is incomplete by design, so never imply the wallet is fully clean. If no approvals were found, say plainly that none were found WITHIN the scan's limits, and state the main limit.
-- An approval to a verified protocol is normal and not an attack, though an unlimited one is still worth trimming. Say which approvals are actually dangerous and which are merely untidy.
+- An approval to a recognised protocol is normal and not an attack, even when the amount is unlimited. Almost every real use of a swap or lending app leaves one behind. Say which approvals are actually dangerous and which are merely untidy, and do not alarm the user about ordinary ones.
+- An unlimited amount on its own is NOT evidence of an attack. Only a scam-list hit, a GoPlus malicious-behaviour flag, a spender that is not a contract, or an unrecognised closed-source contract makes an approval dangerous.
+- A finding marked "(disputed)" means a source flags a contract that is nonetheless a widely used protocol. Report it as worth reviewing and say the sources disagree. Never tell the user a widely used protocol has stolen from them.
+- You may be shown only the most important findings out of a larger total. Never imply the list is complete when the total says otherwise.
 
 WRITING RULES:
 - headline: ONE short sentence in plain words.
