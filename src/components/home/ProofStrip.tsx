@@ -21,7 +21,7 @@ function Count({ value }: { value: number }) {
   return <motion.span ref={ref}>{rounded}</motion.span>;
 }
 
-export function ProofStrip() {
+export function ProofStrip({ compact = false }: { compact?: boolean }) {
   const q = useStats();
 
   if (q.isPending)
@@ -35,17 +35,18 @@ export function ProofStrip() {
   if (q.isError) return <p className="text-sm text-white/60">Live stats are unavailable right now.</p>;
 
   const s = q.data;
-  const items = [
+  const all = [
     { label: "Threats discovered", value: s.discovered },
     { label: "Sent to Reppo", value: s.reppo.submissions },
     { label: "Verified by Reppo", value: s.reppo.verified },
     { label: "Rejected by Reppo", value: s.reppo.rejected },
     { label: "Repeat attacks blocked", value: s.memory.repeatAttacksBlocked, hint: "0 AI calls each" },
   ];
+  const items = compact ? all.filter((_, i) => i !== 1) : all;
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line-dark bg-line-dark sm:grid-cols-5">
+      <div className={cn("grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line-dark bg-line-dark", !compact && "sm:grid-cols-5")}>
         {items.map((it) => (
           <Spotlight key={it.label} lift={false} className="bg-deep-2 p-5">
             <div className="font-display text-5xl text-white tabular-nums">
@@ -63,7 +64,7 @@ export function ProofStrip() {
             <MonoLabel className="text-white/45">Latest Reppo evaluations · live from Supabase</MonoLabel>
           </div>
           <ul>
-            {s.reppo.latestEvaluations.slice(0, 5).map((e) => (
+            {s.reppo.latestEvaluations.slice(0, compact ? 2 : 5).map((e) => (
               <li key={`${e.evalId}-${e.submittedAt}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line-dark px-4 py-3 last:border-0">
                 <code className="addr text-xs text-white/70">{e.evalId ?? "—"}</code>
                 <span

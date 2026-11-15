@@ -3,7 +3,7 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-serif: "Newsreader Variable", ui-serif, Georgia, "Times New Roman", serif;
+  --font-serif: "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
 
   --color-canvas: #e8ebea;
   --color-surface: #f4f6f5;
@@ -57,9 +57,10 @@ body {
 
 .font-display {
   font-family: var(--font-serif);
-  font-weight: 340;
+  font-weight: 300;
   font-optical-sizing: auto;
-  letter-spacing: -0.025em;
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  letter-spacing: -0.02em;
 }
 
 .label-mono {
@@ -298,6 +299,8 @@ body {
 .uv-live { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 99px; background: currentColor; }
 .uv-live::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; animation: uv-ping 1.6s cubic-bezier(0,0,.2,1) infinite; }
 @keyframes uv-ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
