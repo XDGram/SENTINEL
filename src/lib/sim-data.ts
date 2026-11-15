@@ -43,6 +43,8 @@ export const PHISH_UNISWAP_SITE = "https://uniswap.lc/swap";
 export const PHISH_BONUS_SITE = "https://usdt-erc20.network/bonus";
 // Listed by GoPlus, ScamSniffer and MetaMask.
 export const PHISH_AIRDROP_SITE = "https://chainsairdrop.com/claim";
+// Second real listed phishing site (GoPlus, ScamSniffer and MetaMask all flag it), same drainer.
+export const PHISH_AIRDROP_SITE_2 = "https://reward-aero.xyz/claim";
 
 export const KNOWN_SPENDERS: Record<string, string> = {
   "0x000000000022d473030f116ddee9f6b43ac78ba3": "Uniswap Permit2",
@@ -176,7 +178,7 @@ export const SCENARIOS: Scenario[] = [
   {
     id: "a-rewards",
     walletId: "A",
-    tag: "new-attack",
+    tag: "known-attack",
     title: "Claim USDT rewards",
     story: "A Telegram group says Ada can claim 50 USDT on usdt-rewards.xyz. The site asks her to sign a message.",
     action: {
@@ -284,6 +286,34 @@ export const SCENARIOS: Scenario[] = [
         message: {
           owner: BAYO_ADDR,
           spender: DRAINER_SPENDER,
+          value: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+          nonce: 0,
+          deadline: "4102444800",
+        },
+      },
+    },
+  },
+  {
+    id: "b-airdrop",
+    walletId: "B",
+    tag: "repeat-attack",
+    title: "Claim a rewards drop",
+    story: "A Telegram group sends Bayo to a rewards site. It asks him to sign a message to claim.",
+    action: {
+      id: "b-airdrop",
+      kind: "permit",
+      chain: CHAIN,
+      from: BAYO_ADDR,
+      to: AIRDROP_SPENDER,
+      token: USDT,
+      amount: MAX,
+      dapp: { name: "Rewards", url: PHISH_AIRDROP_SITE_2 },
+      typedData: {
+        primaryType: "Permit",
+        domain: { name: "Tether USD", chainId: 1, verifyingContract: USDT.address },
+        message: {
+          owner: BAYO_ADDR,
+          spender: AIRDROP_SPENDER,
           value: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
           nonce: 0,
           deadline: "4102444800",

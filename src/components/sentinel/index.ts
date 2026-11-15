@@ -1,4 +1,4 @@
-export { VerdictHeader, VerdictPill, VERDICT_META } from "./verdict";
+export { VerdictHeader, VerdictPill, VERDICT_META, plain } from "./verdict";
 export { EvidenceList, fromEvidence, fromReports } from "./EvidenceList";
 export { ReasoningTrace } from "./ReasoningTrace";
 export { AskSentinel } from "./AskSentinel";

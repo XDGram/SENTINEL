@@ -5,7 +5,7 @@ import { useCheck } from "@/lib/client/hooks";
 import { ApiError } from "@/lib/client/api";
 import { cn } from "@/lib/cn";
 import { MonoLabel, Skeleton } from "@/components/ui";
-import { VerdictHeader } from "./verdict";
+import { plain, VerdictHeader } from "./verdict";
 import { EvidenceList, fromReports } from "./EvidenceList";
 
 export function CheckResult({ input }: { input: string }) {
@@ -39,11 +39,11 @@ export function CheckResult({ input }: { input: string }) {
       {r?.whatToDo && (
         <div className={cn("rounded-xl p-4 text-sm leading-6", verdict === "safe" ? "bg-safe/10" : verdict === "risky" ? "bg-risky/10" : "bg-uncertain/10")}>
           <MonoLabel className="text-ink-soft">What to do</MonoLabel>
-          <p className="mt-1 text-ink">{r.whatToDo}</p>
+          <p className="mt-1 text-ink">{plain(r.whatToDo)}</p>
           {r.steps.length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-ink">
               {r.steps.map((s, i) => (
-                <li key={i}>{s}</li>
+                <li key={i}>{plain(s)}</li>
               ))}
             </ul>
           )}
