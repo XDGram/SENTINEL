@@ -1,0 +1,47 @@
+"use client";
+
+import { Zap } from "lucide-react";
+import { motion } from "motion/react";
+import type { Analysis } from "@/lib/types";
+import { cn } from "@/lib/cn";
+
+export function MemoryCatchBanner({ analysis, dark }: { analysis: Analysis; dark?: boolean }) {
+  if (!analysis.matchedThreatId) return null;
+  const mem = analysis.evidence.find((e) => e.source === "threat-memory");
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={cn(
+        "relative overflow-hidden rounded-2xl border p-4",
+        dark ? "border-accent/30 bg-accent/10" : "border-accent/40 bg-accent/15",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-ink">
+          <Zap className="h-4 w-4" aria-hidden />
+        </div>
+        <div className="min-w-0">
+          <p className={cn("font-medium", dark ? "text-white" : "text-ink")}>Caught from verified threat memory</p>
+          <p className={cn("mt-1 text-sm leading-6", dark ? "text-white/70" : "text-ink-soft")}>
+            Someone else met this attacker first. Reppo verified it, so Sentinel blocked it for you straight away.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Stat dark={dark} label="AI calls" value="0" />
+            {analysis.latencyMs != null && <Stat dark={dark} label="Time to block" value={`${analysis.latencyMs} ms`} />}
+          </div>
+          {mem && <p className={cn("addr mt-3 text-xs", dark ? "text-white/45" : "text-ink-soft")}>{mem.detail}</p>}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function Stat({ label, value, dark }: { label: string; value: string; dark?: boolean }) {
+  return (
+    <span className={cn("rounded-lg px-2.5 py-1", dark ? "bg-white/10" : "bg-white/70")}>
+      <span className={cn("label-mono mr-2", dark ? "text-white/50" : "text-ink-soft")}>{label}</span>
+      <span className={cn("font-mono text-sm tabular-nums", dark ? "text-white" : "text-ink")}>{value}</span>
+    </span>
+  );
+}

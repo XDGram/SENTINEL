@@ -1,0 +1,71 @@
+"use client";
+
+import { ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
+import { motion } from "motion/react";
+import type { Verdict } from "@/lib/types";
+import { cn } from "@/lib/cn";
+import { Pill } from "@/components/ui";
+
+export const VERDICT_META: Record<Verdict, { label: string; icon: typeof ShieldCheck; text: string; bg: string; ring: string; solid: string }> = {
+  safe: { label: "Looks safe", icon: ShieldCheck, text: "text-safe", bg: "bg-safe/10", ring: "ring-safe/30", solid: "bg-safe" },
+  risky: { label: "Dangerous", icon: ShieldAlert, text: "text-risky", bg: "bg-risky/10", ring: "ring-risky/30", solid: "bg-risky" },
+  uncertain: { label: "Be careful", icon: ShieldQuestion, text: "text-uncertain", bg: "bg-uncertain/10", ring: "ring-uncertain/30", solid: "bg-uncertain" },
+};
+
+export function VerdictPill({ verdict, className }: { verdict: Verdict; className?: string }) {
+  const m = VERDICT_META[verdict];
+  const Icon = m.icon;
+  return (
+    <Pill className={cn(m.bg, m.text, "ring-1", m.ring, className)}>
+      <Icon className="h-3.5 w-3.5" aria-hidden /> {m.label}
+    </Pill>
+  );
+}
+
+export function VerdictHeader({
+  verdict,
+  headline,
+  explanation,
+  confidence,
+  meta,
+  dark,
+}: {
+  verdict: Verdict;
+  headline: string;
+  explanation?: string;
+  confidence?: number;
+  meta?: React.ReactNode;
+  dark?: boolean;
+}) {
+  const m = VERDICT_META[verdict];
+  const Icon = m.icon;
+  return (
+    <div className="flex gap-4">
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 380, damping: 22 }}
+        className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-white", m.solid)}
+      >
+        <Icon className="h-6 w-6" aria-hidden />
+      </motion.div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <VerdictPill verdict={verdict} />
+          {confidence != null && (
+            <span className={cn("label-mono", dark ? "text-white/45" : "text-ink-soft")}>
+              Confidence {Math.round(confidence * 100)}%
+            </span>
+          )}
+          {meta}
+        </div>
+        <h3 className={cn("mt-2 text-xl leading-snug font-medium tracking-tight sm:text-2xl", dark ? "text-white" : "text-ink")}>
+          {headline}
+        </h3>
+        {explanation && (
+          <p className={cn("mt-2 text-[15px] leading-6", dark ? "text-white/70" : "text-ink-soft")}>{explanation}</p>
+        )}
+      </div>
+    </div>
+  );
+}
