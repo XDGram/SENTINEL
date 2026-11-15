@@ -249,7 +249,7 @@ async function approvalPairsFromLogs(owner: string, chainId: number): Promise<{ 
   const url =
     `https://api.etherscan.io/v2/api?chainid=${chainId}&module=logs&action=getLogs` +
     `&topic0=${APPROVAL_TOPIC}&topic0_1_opr=and&topic1=0x${owner.replace(/^0x/, "").toLowerCase().padStart(64, "0")}` +
-    `&fromBlock=0&toBlock=latest&page=1&offset=1000&apikey=${key}`;
+    `&fromBlock=0&toBlock=latest&page=1&offset=1000&sort=desc&apikey=${key}`;
 
   try {
     const res = await fetchWithTimeout(url, {}, 12_000);

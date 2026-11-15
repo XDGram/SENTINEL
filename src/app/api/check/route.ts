@@ -5,7 +5,7 @@ import { accountCode } from "@/lib/wallet-scan";
 import { goplusAddress, goplusApprovalSecurity, goplusSite, goplusTokenSecurity } from "@/lib/intel/goplus";
 import { checkAddressLists, checkDomainLists } from "@/lib/intel/blocklists";
 import { hostOf } from "@/lib/rules";
-import { KNOWN_DAPPS } from "@/lib/sim-data";
+import { lookalikeBrand } from "@/lib/rules";
 import { servAvailable, servExplainCheck, SERV_MODEL, type CheckSubject, type ServCheck } from "@/lib/serv";
 import { TtlCache } from "@/lib/intel/shared";
 import { createThreat } from "@/lib/store";
@@ -29,20 +29,6 @@ interface CheckPayload {
 
 const resultCache = new TtlCache<CheckPayload>(30 * 60_000, 200);
 
-/**
- * A host that borrows a known brand name without being that brand's domain.
- * Mirrors the private lookalikeBrand() rule in src/lib/rules.ts, using the
- * same KNOWN_DAPPS list, because that helper is not exported.
- */
-function lookalikeBrand(host: string): string | null {
-  const isKnown = KNOWN_DAPPS.some((d) => host === d || host.endsWith(`.${d}`));
-  if (isKnown) return null;
-  for (const d of KNOWN_DAPPS) {
-    const brand = d.split(".").slice(-2, -1)[0];
-    if (brand && brand.length >= 4 && host.includes(brand)) return d;
-  }
-  return null;
-}
 
 const flaggedSources = (reports: IntelReport[]): IntelSourceId[] => [
   ...new Set(reports.filter((r) => r.verdict === "malicious" || r.verdict === "suspicious").map((r) => r.source)),

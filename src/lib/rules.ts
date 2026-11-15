@@ -39,12 +39,12 @@ export function hostOf(url: string): string {
   }
 }
 
-function isKnownDapp(host: string): boolean {
+export function isKnownDapp(host: string): boolean {
   return KNOWN_DAPPS.some((d) => host === d || host.endsWith(`.${d}`));
 }
 
 /** Host that borrows a known brand name without being that brand's domain. */
-function lookalikeBrand(host: string): string | null {
+export function lookalikeBrand(host: string): string | null {
   if (isKnownDapp(host)) return null;
   for (const d of KNOWN_DAPPS) {
     const brand = d.split(".").slice(-2, -1)[0];
