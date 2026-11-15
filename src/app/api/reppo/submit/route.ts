@@ -1,0 +1,60 @@
+import { NextResponse } from "next/server";
+import { reppoSubmit } from "@/lib/reppo";
+import { countSubmissions, findThreatByFingerprint, setStatus } from "@/lib/store";
+import type { SubmitRequest, SubmitResponse } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+// Each Reppo evaluation costs credits, and the demo is public.
+const MAX_SUBMISSIONS = Number(process.env.REPPO_MAX_SUBMISSIONS ?? 6);
+
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => null)) as SubmitRequest | null;
+  if (!body?.fingerprint) {
+    return NextResponse.json({ error: "fingerprint is required" }, { status: 400 });
+  }
+
+  // Only threats the server itself discovered can be submitted, using the
+  // evidence packet the server built. The client can't supply the payload.
+  const threat = await findThreatByFingerprint(body.fingerprint);
+  if (!threat || !threat.reppoPacket) {
+    return NextResponse.json({ error: "Unknown threat. Analyse the action first." }, { status: 404 });
+  }
+  if (threat.status !== "discovered" && threat.status !== "failed") {
+    const res: SubmitResponse = {
+      threat,
+      evalId: threat.reppoEvalId,
+      status: threat.status === "submitted" ? "PENDING" : "SETTLED",
+      message: "Already submitted to Reppo.",
+    };
+    return NextResponse.json(res);
+  }
+  if (!threat.servRecommendsSubmit) {
+    const res: SubmitResponse = {
+      threat,
+      status: "BLOCKED",
+      message: "SERV did not recommend this for verification.",
+    };
+    return NextResponse.json(res, { status: 409 });
+  }
+  if ((await countSubmissions()) >= MAX_SUBMISSIONS) {
+    const res: SubmitResponse = { threat, status: "BLOCKED", message: "Demo submission limit reached." };
+    return NextResponse.json(res, { status: 429 });
+  }
+
+  const result = await reppoSubmit(threat);
+  if (!result.ok) {
+    const message =
+      result.httpStatus === 409
+        ? "Reppo allows one pending evaluation at a time. Try again when the current one settles."
+        : result.error;
+    const res: SubmitResponse = { threat, status: "BLOCKED", message };
+    return NextResponse.json(res, { status: result.httpStatus === 409 ? 409 : 502 });
+  }
+
+  const updated = await setStatus(threat.id, "submitted", `Sent to Reppo for independent evaluation (eval ${result.evalId}).`, {
+    reppoEvalId: result.evalId,
+  });
+  const res: SubmitResponse = { threat: updated ?? threat, evalId: result.evalId, status: "PENDING" };
+  return NextResponse.json(res, { status: 201 });
+}
