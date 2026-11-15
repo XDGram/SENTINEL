@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { servAvailable, SERV_MODEL } from "@/lib/serv";
 import { reppoAvailable } from "@/lib/reppo";
+import { storeKind } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,6 @@ export async function GET() {
     serv: servAvailable(),
     servModel: SERV_MODEL,
     reppo: reppoAvailable(),
-    store: process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? "supabase" : "memory",
+    store: storeKind(),
   });
 }
