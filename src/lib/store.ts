@@ -12,6 +12,15 @@ const id = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toStri
 const now = () => new Date().toISOString();
 const MAX_SWEEPS_IN_MEMORY = 50;
 
+/** Blocklist contents saved with a sweep so the next sweep can diff against it. */
+export interface SweepBaselineInput {
+  scamsnifferAddresses: string[];
+}
+export interface SweepBaseline extends SweepBaselineInput {
+  sweepId: string;
+  at: string;
+}
+
 /** Storage primitives. Business rules live in the exported functions below. */
 interface Backend {
   kind: "supabase" | "memory";
@@ -26,14 +35,16 @@ interface Backend {
   incrementCatch(id: string, at: string): Promise<boolean>;
   countSubmissions(): Promise<number>;
   insertEvent(e: ThreatEvent): Promise<void>;
-  insertSweep(s: IntelSweep): Promise<void>;
+  /** Insert a sweep; with a baseline, it replaces any earlier stored baseline. */
+  insertSweep(s: IntelSweep, baseline?: SweepBaselineInput): Promise<void>;
   listSweeps(limit: number): Promise<IntelSweep[]>;
+  latestBaseline(): Promise<SweepBaseline | null>;
 }
 
 // ---------------------------------------------------------------- memory
 
 function memoryBackend(): Backend {
-  type MemDb = { threats: Map<string, Threat>; events: ThreatEvent[]; sweeps: IntelSweep[] };
+  type MemDb = { threats: Map<string, Threat>; events: ThreatEvent[]; sweeps: IntelSweep[]; baseline?: SweepBaseline };
   const g = globalThis as unknown as { __sentinelDb?: MemDb };
   const db: MemDb = (g.__sentinelDb ??= { threats: new Map(), events: [], sweeps: [] });
   const find = (pred: (t: Threat) => boolean) => [...db.threats.values()].find(pred) ?? null;
@@ -68,11 +79,13 @@ function memoryBackend(): Backend {
     insertEvent: async (e) => {
       db.events.push(e);
     },
-    insertSweep: async (s) => {
+    insertSweep: async (s, baseline) => {
       db.sweeps.push(s);
       if (db.sweeps.length > MAX_SWEEPS_IN_MEMORY) db.sweeps.shift();
+      if (baseline) db.baseline = { sweepId: s.id, at: s.at, ...baseline };
     },
     listSweeps: async (limit) => [...db.sweeps].reverse().slice(0, limit),
+    latestBaseline: async () => db.baseline ?? null,
   };
 }
 
@@ -146,6 +159,10 @@ function rowToEvent(r: Row): ThreatEvent {
     detail: r.detail as string,
   };
 }
+
+/** Sweep columns for listing; leaves out the large stored baseline. */
+const SWEEP_COLUMNS =
+  "id, at, totals, new_domains, new_addresses, new_domain_count, new_address_count, community_reports, errors";
 
 function rowToSweep(r: Row): IntelSweep {
   return {
@@ -239,7 +256,7 @@ function supabaseBackend(url: string, key: string): Backend {
       });
       if (error) fail("insert event", error);
     },
-    async insertSweep(s) {
+    async insertSweep(s, baseline) {
       const { error } = await sb.from("intel_sweeps").insert({
         id: s.id,
         at: s.at,
@@ -250,13 +267,43 @@ function supabaseBackend(url: string, key: string): Backend {
         new_address_count: s.newAddressCount,
         community_reports: s.communityReports,
         errors: s.errors,
+        scamsniffer_addresses: baseline?.scamsnifferAddresses ?? null,
       });
       if (error) fail("save sweep", error);
+      if (baseline) {
+        // Keep only the newest baseline (~100 KB) so the table stays small.
+        const { error: pruneError } = await sb
+          .from("intel_sweeps")
+          .update({ scamsniffer_addresses: null })
+          .neq("id", s.id)
+          .not("scamsniffer_addresses", "is", null);
+        if (pruneError) fail("prune sweep baselines", pruneError);
+      }
     },
     async listSweeps(limit) {
-      const { data, error } = await sb.from("intel_sweeps").select("*").order("at", { ascending: false }).limit(limit);
+      const { data, error } = await sb
+        .from("intel_sweeps")
+        .select(SWEEP_COLUMNS)
+        .order("at", { ascending: false })
+        .limit(limit);
       if (error) fail("list sweeps", error);
-      return (data ?? []).map(rowToSweep);
+      return ((data ?? []) as unknown as Row[]).map(rowToSweep);
+    },
+    async latestBaseline() {
+      const { data, error } = await sb
+        .from("intel_sweeps")
+        .select("id, at, scamsniffer_addresses")
+        .not("scamsniffer_addresses", "is", null)
+        .order("at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) fail("load sweep baseline", error);
+      if (!data) return null;
+      return {
+        sweepId: data.id as string,
+        at: iso(data.at)!,
+        scamsnifferAddresses: (data.scamsniffer_addresses as string[]) ?? [],
+      };
     },
   };
 }
@@ -395,10 +442,19 @@ export async function addEvent(e: Omit<ThreatEvent, "id" | "at">): Promise<Threa
   return event;
 }
 
-export async function saveSweep(sweep: Omit<IntelSweep, "id">): Promise<IntelSweep> {
+/**
+ * Save a sweep. Pass `baseline` (the full ScamSniffer address list) to make it
+ * the reference the next sweep diffs against.
+ */
+export async function saveSweep(sweep: Omit<IntelSweep, "id">, baseline?: SweepBaselineInput): Promise<IntelSweep> {
   const saved: IntelSweep = { id: id("swp"), ...sweep };
-  await store().insertSweep(saved);
+  await store().insertSweep(saved, baseline);
   return saved;
+}
+
+/** The blocklist contents saved with the most recent sweep that stored them. */
+export async function getSweepBaseline(): Promise<SweepBaseline | null> {
+  return store().latestBaseline();
 }
 
 export async function listSweeps(limit = 10): Promise<IntelSweep[]> {

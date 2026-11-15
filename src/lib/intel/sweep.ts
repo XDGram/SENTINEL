@@ -5,36 +5,50 @@
 
 import "server-only";
 import type { IntelReport, IntelSweep } from "../types";
-import { listStats, snapshot } from "./blocklists";
+import { getLists, listStats } from "./blocklists";
 import { webReportsForPattern, webSearchProvider } from "./web";
 import { errorMessage } from "./shared";
-import { saveSweep } from "../store";
+import { getSweepBaseline, saveSweep } from "../store";
 
 const FRESH_REPORT_QUERIES = [
   "wallet drained phishing site this week crypto",
   "address poisoning attack USDT victim",
 ];
 
-const g = globalThis as unknown as { __sentinelSweepBase?: { domains: Set<string>; addresses: Set<string> } };
-
+/**
+ * "New since last sweep" for ScamSniffer addresses is diffed against the list
+ * saved with the previous sweep in threat memory (Supabase), so it survives
+ * cold starts. Domains (~360k entries) are not stored, only counted in
+ * `totals`, so newDomains / newDomainCount stay null: there is no exact,
+ * cheap diff for them.
+ */
 export async function runSweep(): Promise<IntelSweep> {
   const errors: string[] = [];
-  const before = g.__sentinelSweepBase;
 
-  let snap: { domains: Set<string>; addresses: Set<string> } | null = null;
+  let addresses: string[] | null = null;
   try {
-    snap = await snapshot();
+    const lists = await getLists(true);
+    const addressFetchFailed = lists.errors.some((e) => e.startsWith("ScamSniffer addresses"));
+    errors.push(...lists.errors);
+    // Only trust a list that was actually fetched this sweep; a failed fetch
+    // falls back to an old or empty copy, which would corrupt the diff.
+    if (!addressFetchFailed && lists.ssAddresses.size > 0) addresses = [...lists.ssAddresses].sort();
   } catch (err) {
     errors.push(`blocklists: ${errorMessage(err)}`);
   }
 
-  let newDomains: string[] | null = null;
   let newAddresses: string[] | null = null;
-  if (snap && before) {
-    newDomains = [...snap.domains].filter((d) => !before.domains.has(d));
-    newAddresses = [...snap.addresses].filter((a) => !before.addresses.has(a));
+  if (addresses) {
+    try {
+      const base = await getSweepBaseline();
+      if (base) {
+        const before = new Set(base.scamsnifferAddresses);
+        newAddresses = addresses.filter((a) => !before.has(a));
+      }
+    } catch (err) {
+      errors.push(`baseline: ${errorMessage(err)}`);
+    }
   }
-  if (snap) g.__sentinelSweepBase = snap;
 
   const communityReports: IntelReport[] = [];
   if (webSearchProvider()) {
@@ -48,7 +62,6 @@ export async function runSweep(): Promise<IntelSweep> {
   }
 
   const stats = await listStats();
-  errors.push(...stats.errors);
 
   return saveSweep({
     at: new Date().toISOString(),
@@ -57,11 +70,11 @@ export async function runSweep(): Promise<IntelSweep> {
       scamsnifferAddresses: stats.scamsnifferAddresses,
       metamaskBlacklist: stats.metamaskBlacklist,
     },
-    newDomains: newDomains?.slice(0, 25) ?? null,
+    newDomains: null,
     newAddresses: newAddresses?.slice(0, 25) ?? null,
-    newDomainCount: newDomains?.length ?? null,
+    newDomainCount: null,
     newAddressCount: newAddresses?.length ?? null,
     communityReports,
     errors,
-  });
+  }, addresses ? { scamsnifferAddresses: addresses } : undefined);
 }
