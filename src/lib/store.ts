@@ -34,6 +34,10 @@ interface Backend {
   updateThreat(id: string, patch: Partial<Threat>): Promise<Threat | null>;
   incrementCatch(id: string, at: string): Promise<boolean>;
   countSubmissions(): Promise<number>;
+  countEventsByKind(): Promise<Record<ThreatEventKind, number>>;
+  countThreatsByStatus(): Promise<Record<ThreatStatus, number>>;
+  listVerified(limit: number): Promise<Threat[]>;
+  listEventsOfKind(kinds: ThreatEventKind[], limit: number): Promise<ThreatEvent[]>;
   insertEvent(e: ThreatEvent): Promise<void>;
   /** Insert a sweep; with a baseline, it replaces any earlier stored baseline. */
   insertSweep(s: IntelSweep, baseline?: SweepBaselineInput): Promise<void>;
@@ -76,6 +80,26 @@ function memoryBackend(): Backend {
       return true;
     },
     countSubmissions: async () => [...db.threats.values()].filter((t) => t.reppoEvalId).length,
+    countEventsByKind: async () => {
+      const out = zeroCounts(EVENT_KINDS);
+      for (const e of db.events) out[e.kind]++;
+      return out;
+    },
+    countThreatsByStatus: async () => {
+      const out = zeroCounts(THREAT_STATUSES);
+      for (const t of db.threats.values()) out[t.status]++;
+      return out;
+    },
+    listVerified: async (limit) =>
+      [...db.threats.values()]
+        .filter((t) => t.status === "verified")
+        .sort((a, b) => (b.verifiedAt ?? "").localeCompare(a.verifiedAt ?? ""))
+        .slice(0, limit),
+    listEventsOfKind: async (kinds, limit) =>
+      db.events
+        .filter((e) => kinds.includes(e.kind))
+        .sort((a, b) => b.at.localeCompare(a.at))
+        .slice(0, limit),
     insertEvent: async (e) => {
       db.events.push(e);
     },
@@ -237,6 +261,54 @@ function supabaseBackend(url: string, key: string, headers: Record<string, strin
       if (error) fail("record catch", error);
       return true;
     },
+    async countEventsByKind() {
+      const out = zeroCounts(EVENT_KINDS);
+      await Promise.all(
+        EVENT_KINDS.map(async (kind) => {
+          const { count, error } = await sb
+            .from("threat_events")
+            .select("id", { count: "exact", head: true })
+            .eq("kind", kind);
+          if (error) fail("count events", error);
+          out[kind] = count ?? 0;
+        }),
+      );
+      return out;
+    },
+    async countThreatsByStatus() {
+      const out = zeroCounts(THREAT_STATUSES);
+      await Promise.all(
+        THREAT_STATUSES.map(async (status) => {
+          const { count, error } = await sb
+            .from("threats")
+            .select("id", { count: "exact", head: true })
+            .eq("status", status);
+          if (error) fail("count threats", error);
+          out[status] = count ?? 0;
+        }),
+      );
+      return out;
+    },
+    async listVerified(limit) {
+      const { data, error } = await sb
+        .from("threats")
+        .select("*")
+        .eq("status", "verified")
+        .order("verified_at", { ascending: false })
+        .limit(limit);
+      if (error) fail("list verified", error);
+      return (data ?? []).map(rowToThreat);
+    },
+    async listEventsOfKind(kinds, limit) {
+      const { data, error } = await sb
+        .from("threat_events")
+        .select("*")
+        .in("kind", kinds)
+        .order("at", { ascending: false })
+        .limit(limit);
+      if (error) fail("list events", error);
+      return (data ?? []).map(rowToEvent);
+    },
     async countSubmissions() {
       const { count, error } = await sb
         .from("threats")
@@ -306,6 +378,13 @@ function supabaseBackend(url: string, key: string, headers: Record<string, strin
       };
     },
   };
+}
+
+const EVENT_KINDS: ThreatEventKind[] = ["discovered", "submitted", "verified", "rejected", "failed", "caught"];
+const THREAT_STATUSES: ThreatStatus[] = ["discovered", "submitted", "verified", "rejected", "failed"];
+
+function zeroCounts<K extends string>(keys: K[]): Record<K, number> {
+  return Object.fromEntries(keys.map((k) => [k, 0])) as Record<K, number>;
 }
 
 /** Quote a value for a PostgREST `in.(...)` filter. */
@@ -443,6 +522,26 @@ export async function recordCatch(threatId: string, walletId: "A" | "B", detail:
 
 export async function countSubmissions(): Promise<number> {
   return store().countSubmissions();
+}
+
+/** Number of timeline events of each kind (exact counts from storage). */
+export async function countEventsByKind(): Promise<Record<ThreatEventKind, number>> {
+  return store().countEventsByKind();
+}
+
+/** Number of threats currently in each status (exact counts from storage). */
+export async function countThreatsByStatus(): Promise<Record<ThreatStatus, number>> {
+  return store().countThreatsByStatus();
+}
+
+/** Reppo-verified threats, newest verification first. */
+export async function listVerifiedThreats(limit = 500): Promise<Threat[]> {
+  return store().listVerified(limit);
+}
+
+/** Latest timeline events of the given kinds, newest first. */
+export async function listEventsOfKind(kinds: ThreatEventKind[], limit = 50): Promise<ThreatEvent[]> {
+  return store().listEventsOfKind(kinds, limit);
 }
 
 export async function addEvent(e: Omit<ThreatEvent, "id" | "at">): Promise<ThreatEvent> {
