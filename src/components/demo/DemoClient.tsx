@@ -1,9 +1,10 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { BadgeCheck, RotateCcw, ShieldAlert, Zap } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
-import type { Wallet, WalletAction } from "@/lib/types";
+import type { Threat, Wallet, WalletAction } from "@/lib/types";
 import { initialWallets, SCENARIOS, type Scenario } from "@/lib/sim-data";
 import { api, ApiError } from "@/lib/client/api";
 import { useHealth } from "@/lib/client/hooks";
@@ -22,6 +23,7 @@ const STEPS = [
 
 export function DemoClient() {
   const qc = useQueryClient();
+  const toast = useToast();
   const health = useHealth();
   const [wallets, setWallets] = useState<Record<Id, Wallet>>(() => initialWallets());
   const [phones, setPhones] = useState<Record<Id, PhoneState>>({ A: { view: "home" }, B: { view: "home" } });
@@ -56,6 +58,23 @@ export function DemoClient() {
     try {
       const a = await api.analyze(action, id);
       setPanel({ walletId: id, owner: wallets[id].owner, action, analysis: a });
+      if (a.matchedThreatId) {
+        toast({
+          title: "Blocked from memory",
+          description: `${wallets[id].owner} was protected instantly, 0 AI calls.`,
+          tag: `${a.latencyMs} ms`,
+          tone: "good",
+          icon: <Zap className="h-5 w-5" />,
+          action: { label: "View", href: "/memory" },
+        });
+      } else if (a.verdict !== "safe") {
+        toast({
+          title: "Watchdog paused this",
+          description: `${wallets[id].owner}'s ${action.kind === "send" ? "payment" : "signature"} was stopped before it went through.`,
+          tone: "bad",
+          icon: <ShieldAlert className="h-5 w-5" />,
+        });
+      }
       if (a.verdict === "safe") {
         debit(id, action);
         setPhone(id, {
@@ -127,11 +146,29 @@ export function DemoClient() {
     setPanel(null);
   };
 
-  const onSettled = useCallback(() => {
+  const onSettled = useCallback((t: Threat) => {
+    toast(
+      t.status === "verified"
+        ? {
+            title: "Verified by Reppo",
+            description: "Added to threat memory. The next person is protected.",
+            tag: t.reppoScore != null ? `score ${t.reppoScore}/100` : undefined,
+            tone: "good",
+            icon: <BadgeCheck className="h-5 w-5" />,
+            action: { label: "Memory", href: "/memory" },
+          }
+        : {
+            title: "Reppo did not accept it",
+            description: "Kept out of shared memory. Watchdog only trusts accepted verdicts.",
+            tag: t.reppoScore != null ? `score ${t.reppoScore}/100` : undefined,
+            tone: "bad",
+            icon: <ShieldAlert className="h-5 w-5" />,
+          },
+    );
     qc.invalidateQueries({ queryKey: ["stats"] });
     qc.invalidateQueries({ queryKey: ["feed"] });
     qc.invalidateQueries({ queryKey: ["threats"] });
-  }, [qc]);
+  }, [qc, toast]);
 
   const h = health.data;
 

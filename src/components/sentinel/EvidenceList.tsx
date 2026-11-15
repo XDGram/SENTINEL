@@ -13,6 +13,20 @@ export interface EvidenceItem {
   tone: "bad" | "warn" | "neutral" | "good";
 }
 
+const SOURCE_TIP: Record<string, string> = {
+  Rules: "Watchdog's built-in checks. Instant, no AI.",
+  Chain: "What the (simulated) wallet history shows.",
+  "Threat memory": "Attackers Reppo has already verified.",
+  Reppo: "Independent evaluator verdict from Reppo.",
+  SERV: "SERV Reasoning, the AI that weighs the evidence.",
+  GoPlus: "GoPlus Security: live address and site reputation.",
+  "GoPlus Security": "GoPlus Security: live address and site reputation.",
+  ScamSniffer: "ScamSniffer: open database of scam addresses and phishing sites.",
+  "ScamSniffer database": "ScamSniffer: open database of scam addresses and phishing sites.",
+  MetaMask: "MetaMask's open phishing blocklist.",
+  "MetaMask phishing list": "MetaMask's open phishing blocklist.",
+};
+
 const TONE: Record<EvidenceItem["tone"], string> = {
   bad: "bg-risky",
   warn: "bg-uncertain",
@@ -80,7 +94,10 @@ export function EvidenceList({ items, dark, title = "Evidence" }: { items: Evide
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
+                    tabIndex={SOURCE_TIP[e.source] ? 0 : undefined}
+                    data-tip={SOURCE_TIP[e.source]}
                     className={cn(
+                      SOURCE_TIP[e.source] && "uv-tip cursor-help",
                       "label-mono rounded px-1.5 py-0.5",
                       dark ? "bg-white/10 text-white/70" : "bg-ink/5 text-ink-soft",
                     )}

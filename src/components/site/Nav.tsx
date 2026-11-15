@@ -14,6 +14,7 @@ import { CtaLink } from "@/components/ui/elements";
 import { Logo } from "./Logo";
 
 const LINKS = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/", label: "Check" },
   { href: "/demo", label: "Demo" },
   { href: "/memory", label: "Threat memory", badge: true },
@@ -66,10 +67,10 @@ export function Nav() {
                 {l.badge && verified != null && (
                   <span
                     className={cn(
-                      "relative grid h-4 min-w-4 place-items-center rounded-full px-1 font-mono text-[10px] transition-colors",
+                      "uv-tip relative grid h-4 min-w-4 place-items-center rounded-full px-1 font-mono text-[10px] transition-colors",
                       isActive ? "bg-ink text-white" : "bg-accent/30 text-ink",
                     )}
-                    title="Reppo-verified attackers in memory"
+                    data-tip="Reppo-verified attackers in memory"
                   >
                     {verified}
                   </span>

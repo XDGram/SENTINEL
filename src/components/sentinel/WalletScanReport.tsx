@@ -18,13 +18,14 @@ const RISK: Record<Risk, { label: string; dot: string; pill: string; bar: string
 };
 const ORDER: Risk[] = ["critical", "high", "medium", "low"];
 
-export function WalletScanReport({ address }: { address: string }) {
+export function WalletScanReport({ address, riskyOnly = false }: { address: string; riskyOnly?: boolean }) {
   const q = useWalletScan(address);
   if (q.isPending) return <ResultSkeleton label="Reading this wallet's approvals on-chain…" />;
   if (q.isError) return <ResultError error={q.error} onRetry={() => q.refetch()} />;
   const d = q.data;
   const total = d.approvalCount;
   const s = d.summary;
+  const list = riskyOnly ? d.top.filter((a) => a.risk !== "low") : d.top;
 
   return (
     <div className="space-y-6">
@@ -67,13 +68,13 @@ export function WalletScanReport({ address }: { address: string }) {
         </div>
       )}
 
-      {d.top.length > 0 ? (
+      {list.length > 0 ? (
         <section>
           <MonoLabel className="mb-3 block text-ink-soft">
-            Top {d.top.length} to review{total > d.top.length ? ` of ${total}` : ""}
+            {riskyOnly ? `${list.length} risky to review` : `Top ${list.length} to review${total > list.length ? ` of ${total}` : ""}`}
           </MonoLabel>
           <ul className="space-y-2">
-            {d.top.map((a, i) => (
+            {list.map((a, i) => (
               <ApprovalRow key={`${a.token.address}-${a.spender}-${i}`} a={a} />
             ))}
           </ul>

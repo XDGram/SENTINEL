@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { useStats } from "@/lib/client/hooks";
 import { cn, timeAgo } from "@/lib/cn";
 import { MonoLabel, Skeleton } from "@/components/ui";
+import { Spotlight } from "@/components/ui/Spotlight";
 
 function Count({ value }: { value: number }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -46,13 +47,13 @@ export function ProofStrip() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-card)] border border-line-dark bg-line-dark sm:grid-cols-5">
         {items.map((it) => (
-          <div key={it.label} className="bg-deep-2 p-5">
+          <Spotlight key={it.label} lift={false} className="bg-deep-2 p-5">
             <div className="font-display text-5xl text-white tabular-nums">
               <Count value={it.value} />
             </div>
             <MonoLabel className="mt-2 block text-white/50">{it.label}</MonoLabel>
             {it.hint && <span className="mt-1 block text-xs text-accent">{it.hint}</span>}
-          </div>
+          </Spotlight>
         ))}
       </div>
 
