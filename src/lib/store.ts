@@ -182,10 +182,10 @@ function fail(op: string, error: { message: string; code?: string }): never {
   throw new Error(`Threat memory (${op}) failed: ${error.message}${error.code ? ` [${error.code}]` : ""}`);
 }
 
-function supabaseBackend(url: string, key: string): Backend {
+function supabaseBackend(url: string, key: string, headers: Record<string, string> = {}): Backend {
   const sb: SupabaseClient = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
+    global: { headers, fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
   });
 
   const one = async (op: string, q: PromiseLike<{ data: Row | null; error: { message: string; code?: string } | null }>) => {
@@ -321,7 +321,16 @@ function store(): Backend {
   if (g.__sentinelBackend) return g.__sentinelBackend;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  g.__sentinelBackend = url && key ? supabaseBackend(url, key) : memoryBackend();
+  // Alternative to the service key: the public key plus a server-only secret
+  // header that RLS checks (see supabase/migrations/*_app_key_access.sql).
+  const publicKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const appKey = process.env.SENTINEL_DB_KEY;
+  g.__sentinelBackend =
+    url && key
+      ? supabaseBackend(url, key)
+      : url && publicKey && appKey
+        ? supabaseBackend(url, publicKey, { "x-sentinel-key": appKey })
+        : memoryBackend();
   return g.__sentinelBackend;
 }
 
