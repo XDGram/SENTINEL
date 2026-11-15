@@ -66,7 +66,7 @@ export function PhoneWallet({ wallet, scenarios, state, active, onPick, onConfir
         <div className="text-sm text-white/55">{usdt?.amount.toLocaleString()} USDT</div>
       </button>
 
-      <div className="min-h-[460px] flex-1 rounded-t-[1.6rem] bg-[#18221f] p-4">
+      <div className="min-h-[460px] flex-1 rounded-t-[1.6rem] bg-[#141414] p-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={state.view}

@@ -7,7 +7,6 @@ import {
   Check,
   Copy,
   Link2,
-  Plus,
   Radar,
   RefreshCw,
   Search,
@@ -253,55 +252,122 @@ function WalletCard({
 
 /* ---------------------------------------------------------------- memory (deep) */
 
-function MemoryCard() {
-  const feed = useFeed();
-  const stats = useStats();
-  const today = useMemo(
-    () => feed.data?.threats.filter((t) => t.verifiedAt && Date.now() - new Date(t.verifiedAt).getTime() < 86_400_000).length ?? 0,
-    [feed.data],
-  );
+const SWEEP_S = 4;
+
+/** Stable 0..1 values from an indicator, so each attacker keeps its spot on the radar. */
+function spot(id: string): { angle: number; r: number } {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+  const a = ((h >>> 0) % 3600) / 10;
+  const r = 0.32 + (((h >>> 12) % 1000) / 1000) * 0.55;
+  return { angle: a, r };
+}
+
+/**
+ * Threat radar: concentric rings with a rotating sweep (adapted from Uiverse.io,
+ * Yaya12085/hot-swan-8, MIT). Each blip is one real Reppo-verified attacker from
+ * /api/feed and pulses as the sweep passes over it.
+ */
+function RadarScope({ ids }: { ids: string[] }) {
   return (
-    <Spotlight className="relative flex flex-col rounded-[var(--radius-box)] bg-deep p-5 text-white sm:p-6">
-      <svg className="pointer-events-none absolute -top-6 right-6 h-40 w-40 animate-[spin_40s_linear_infinite] text-white/[0.06]" viewBox="0 0 100 100" aria-hidden>
-        <path fill="currentColor" d="M50 0C54 30 70 46 100 50C70 54 54 70 50 100C46 70 30 54 0 50C30 46 46 30 50 0Z" />
-      </svg>
-      <div className="relative flex items-center justify-between">
-        <Link href="/memory" className="label-mono inline-flex h-10 items-center gap-2 rounded-full bg-white/10 pr-1 pl-4 text-white hover:bg-white/15">
-          Threat memory
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-ink">
-            <Plus className="h-4 w-4" />
+    <div className="relative aspect-square w-full max-w-[200px] shrink-0 overflow-hidden rounded-full border border-white/15 bg-[repeating-radial-gradient(circle_at_50%,rgb(255_255_255/.12)_0_1px,transparent_1px_22px)]">
+      <span className="absolute inset-x-0 top-1/2 h-px bg-white/10" />
+      <span className="absolute inset-y-0 left-1/2 w-px bg-white/10" />
+      <div
+        className="absolute inset-0 animate-[spin_var(--sweep)_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,rgb(255_255_255/.38),rgb(255_255_255/.06)_55deg,transparent_90deg)] motion-reduce:animate-none"
+        style={{ ["--sweep" as string]: `${SWEEP_S}s` }}
+      />
+      {ids.map((id) => {
+        const { angle, r } = spot(id);
+        const rad = ((angle - 90) * Math.PI) / 180;
+        const x = 50 + Math.cos(rad) * r * 50;
+        const y = 50 + Math.sin(rad) * r * 50;
+        return (
+          <span
+            key={id}
+            className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+            style={{ left: `${x}%`, top: `${y}%` }}
+          >
+            <span
+              className="absolute inset-0 animate-[radar-blip_var(--sweep)_linear_infinite] rounded-full bg-white motion-reduce:animate-none"
+              style={{ ["--sweep" as string]: `${SWEEP_S}s`, animationDelay: `${(angle / 360) * SWEEP_S}s` }}
+            />
           </span>
-        </Link>
-      </div>
-      <p className="label-mono relative mt-8 text-white/50">Reppo-verified attackers</p>
-      <div className="relative mt-1 flex flex-wrap items-center gap-3">
-        {feed.isPending ? <Skeleton dark className="h-14 w-24" /> : <span className="font-display text-[72px] leading-[0.9] tabular-nums">{feed.data?.count ?? "—"}</span>}
-        {feed.isSuccess && <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80">+{today} today</span>}
-      </div>
-      <div className="relative mt-auto grid grid-cols-2 gap-3 pt-8">
-        <SubTile label="Reppo evaluations" value={stats.data?.reppo.submissions} icon={<Send className="h-3.5 w-3.5" />} />
-        <SubTile label="Repeat attacks blocked" value={stats.data?.memory.repeatAttacksBlocked} icon={<Zap className="h-3.5 w-3.5" />} />
-      </div>
-    </Spotlight>
+        );
+      })}
+      <span className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
+    </div>
   );
 }
 
-function SubTile({ label, value, icon }: { label: string; value?: number; icon: React.ReactNode }) {
+function MemoryCard() {
+  const feed = useFeed();
+  const stats = useStats();
+  const verified = useMemo(
+    () => [...(feed.data?.threats ?? [])].sort((a, b) => (b.verifiedAt ?? "").localeCompare(a.verifiedAt ?? "")),
+    [feed.data],
+  );
+  const today = verified.filter((t) => t.verifiedAt && Date.now() - new Date(t.verifiedAt).getTime() < 86_400_000).length;
+
   return (
-    <div className="rounded-2xl border border-line-dark bg-white/[0.04] p-3.5">
-      <p className="text-xs text-white/55">{label}</p>
-      <p className="mt-2 flex items-center gap-2 font-mono text-xl tabular-nums text-white">
-        {icon}
-        {value ?? "—"}
-      </p>
-    </div>
+    <Spotlight className="relative flex flex-col rounded-[var(--radius-box)] bg-deep p-5 text-white sm:p-6">
+      <div className="flex items-center justify-between gap-3">
+        <span className="label-mono flex items-center gap-2 text-white/60">
+          <span className="uv-live text-safe" aria-hidden /> Threat radar
+        </span>
+        <Link href="/memory" className="label-mono inline-flex h-9 items-center gap-2 rounded-full bg-white/10 pr-1 pl-3.5 text-white hover:bg-white/15">
+          Memory
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-ink">
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </span>
+        </Link>
+      </div>
+
+      <div className="mt-5 flex items-center gap-5">
+        <RadarScope ids={verified.map((t) => t.indicator)} />
+        <div className="min-w-0">
+          <p className="label-mono text-white/50">Verified attackers</p>
+          {feed.isPending ? (
+            <Skeleton dark className="mt-2 h-14 w-20" />
+          ) : (
+            <p className="font-display text-[64px] leading-[0.95] tabular-nums">{feed.data?.count ?? "—"}</p>
+          )}
+          {feed.isSuccess && <span className="mt-1 inline-block rounded-full bg-white/10 px-2.5 py-1 text-xs text-white/80">+{today} today</span>}
+          <dl className="mt-4 space-y-1 text-xs text-white/55">
+            <div className="flex gap-2"><dt>Reppo evaluations</dt><dd className="font-mono text-white">{stats.data?.reppo.submissions ?? "—"}</dd></div>
+            <div className="flex gap-2"><dt>Repeat attacks blocked</dt><dd className="font-mono text-white">{stats.data?.memory.repeatAttacksBlocked ?? "—"}</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <ul className="mt-5 space-y-2 border-t border-line-dark pt-4">
+        {verified.slice(0, 3).map((t) => {
+          const who = t.domain ?? t.indicator.replace(/^(spender|address|domain):/, "");
+          return (
+            <li key={t.id} className="flex items-center gap-3 text-sm">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white" aria-hidden />
+              <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-white/85" title={t.indicator}>
+                {who.startsWith("0x") ? shortAddr(who, 5) : who}
+              </span>
+              {t.reppo.score != null && (
+                <span className="uv-tip rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-white" data-tip={`Reppo ${t.reppo.decision ?? ""} · eval ${t.reppo.evalId ?? ""}`}>
+                  {t.reppo.score}/100
+                </span>
+              )}
+              <span className="w-14 shrink-0 text-right text-xs text-white/45">{t.timesCaught ? `${t.timesCaught}× caught` : "watching"}</span>
+            </li>
+          );
+        })}
+        {feed.isSuccess && verified.length === 0 && <li className="text-sm text-white/50">Nothing verified yet. Run the demo to teach Watchdog its first attacker.</li>}
+      </ul>
+    </Spotlight>
   );
 }
 
 /* ---------------------------------------------------------------- donut */
 
 const RISKS = [
-  { k: "low", label: "Low", color: "#3d7a74" },
+  { k: "low", label: "Low", color: "#525252" },
   { k: "medium", label: "Medium", color: "#d99a2b" },
   { k: "high", label: "High", color: "#d9475b" },
   { k: "critical", label: "Critical", color: "#8f1d2c" },
@@ -333,7 +399,7 @@ function RiskDonutCard({ address }: { address: string | null }) {
         ) : (
           <div className="relative h-[150px] w-[150px]">
             <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90" role="img" aria-label="Approvals by risk level">
-              <circle cx="70" cy="70" r={R} fill="none" stroke="#e8ebea" strokeWidth="14" />
+              <circle cx="70" cy="70" r={R} fill="none" stroke="#fafafa" strokeWidth="14" />
               {d &&
                 total > 0 &&
                 RISKS.map((r) => {

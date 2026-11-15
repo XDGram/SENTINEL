@@ -5,25 +5,25 @@
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-serif: "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
 
-  --color-canvas: #e8ebea;
-  --color-surface: #f4f6f5;
-  --color-ink: #1e2a28;
-  --color-ink-soft: #5b6865;
-  --color-deep: #26332f;
-  --color-deep-2: #2f3d39;
-  --color-line: #d5dbd9;
-  --color-line-dark: #3b4a46;
+  --color-canvas: #fafafa;
+  --color-surface: #ffffff;
+  --color-ink: #0a0a0a;
+  --color-ink-soft: #6b6b6b;
+  --color-deep: #0a0a0a;
+  --color-deep-2: #161616;
+  --color-line: #e7e7e7;
+  --color-line-dark: #262626;
   --color-accent: #ffffff;
-  --color-teal: #3d7a74;
+  --color-teal: #525252;
   --color-safe: #2f9e6e;
   --color-risky: #d9475b;
   --color-uncertain: #d99a2b;
-  --color-pending: #7c6cd9;
+  --color-pending: #6b6b6b;
 
   --radius-card: 14px;
   --radius-box: 18px;
 
-  --shadow-box: 0 20px 40px -20px rgb(30 42 40 / 0.45);
+  --shadow-box: 0 20px 40px -20px rgb(10 10 10 / 0.45);
 
   --animate-shimmer: shimmer 1.6s linear infinite;
   @keyframes shimmer {
@@ -38,7 +38,7 @@ html {
 }
 
 body {
-  background: var(--color-canvas);
+  background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -173,7 +173,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: conic-gradient(from var(--uv-angle, 0deg), #ffffff, #ffffff00 25%, #5b686599 50%, #ffffff00 75%, #ffffff);
+  background: conic-gradient(from var(--uv-angle, 0deg), #ffffff, #ffffff00 25%, #6b6b6b99 50%, #ffffff00 75%, #ffffff);
   animation: uv-spin 6s linear infinite;
   z-index: -1;
 }
@@ -182,7 +182,7 @@ body {
   position: absolute;
   inset: 12% 8% -8%;
   border-radius: inherit;
-  background: #1e2a28;
+  background: #0a0a0a;
   filter: blur(42px);
   opacity: 0.18;
   z-index: -2;
@@ -293,13 +293,34 @@ body {
 .uv-spot:hover::before { opacity: 1; }
 .bg-deep.uv-spot, .bg-deep-2.uv-spot, .bg-deep .uv-spot, .bg-deep-2 .uv-spot { --spot: rgb(255 255 255 / 0.07); }
 .uv-lift { transition: transform 0.35s cubic-bezier(.3,1.4,.5,1), box-shadow 0.35s; }
-.uv-lift:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -22px rgb(30 42 40 / .45); }
+.uv-lift:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -22px rgb(10 10 10 / .45); }
 
 /* Live pulse dot */
 .uv-live { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 99px; background: currentColor; }
 .uv-live::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor; animation: uv-ping 1.6s cubic-bezier(0,0,.2,1) infinite; }
 @keyframes uv-ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
 
+/* Background design: a fine dot grid with a soft vignette that fades into the page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgb(0 0 0 / 0.11) 1px, transparent 0),
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgb(255 255 255 / 0.9), transparent 70%);
+  background-size: 22px 22px, 100% 100%;
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 30%, #000 25%, transparent 85%);
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 30%, #000 25%, transparent 85%);
+}
+/* Dark sections get a matching, fainter grid. */
+.bg-grid-dark {
+  background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.07) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+@keyframes radar-blip { 0%, 6% { transform: scale(1); opacity: 0.9; } 30% { transform: scale(3.2); opacity: 0; } 100% { opacity: 0; } }
 @keyframes marquee { to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {

@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useFeed } from "@/lib/client/hooks";
 
-const NEUTRAL = ["#2f5f5a", "#3d7a74", "#4f8f88", "#6fa39c", "#26332f", "#5b6865", "#8fb3ad"];
-const PINK = ["#e59bd0", "#d77fc0", "#f0b8de", "#c86fae", "#f6d2ea", "#b9a3e3"];
+const NEUTRAL = ["#3f3f3f", "#525252", "#5c5c5c", "#7a7a7a", "#0a0a0a", "#6b6b6b", "#9a9a9a"];
+const PINK = ["#111111", "#2a2a2a", "#8a8a8a", "#444444", "#bdbdbd", "#666666"];
 
 function rand(seed: number) {
   // Deterministic PRNG so the band looks the same on every render.
@@ -125,7 +125,7 @@ export function ThreatField() {
   }, []);
 
   return (
-    <div className="relative bg-[linear-gradient(to_bottom,var(--color-canvas)_0%,var(--color-canvas)_55%,#9aa6a2_80%,var(--color-deep)_100%)]">
+    <div className="relative bg-[linear-gradient(to_bottom,var(--color-canvas)_0%,var(--color-canvas)_55%,#a3a3a3_80%,var(--color-deep)_100%)]">
       <canvas ref={ref} className="block h-[200px] w-full sm:h-[260px]" aria-hidden />
       <p className="label-mono absolute right-4 bottom-3 rounded-full bg-deep/80 px-3 py-1 text-white/80 backdrop-blur sm:right-6">
         {feed.isSuccess

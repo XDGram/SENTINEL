@@ -45,7 +45,7 @@ export function LearningLoop() {
           className="absolute flex w-36 -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 text-center"
           style={{ left: `${n.x}%`, top: `${n.y}%` }}
         >
-          <span className="grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow-[0_0_0_6px_rgb(38_51_47)]">
+          <span className="grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow-[0_0_0_6px_rgb(10_10_10)]">
             <n.icon className="h-5 w-5" />
           </span>
           <span className="rounded-md bg-deep px-1.5 py-0.5 text-xs leading-4 text-white/75">{n.label}</span>

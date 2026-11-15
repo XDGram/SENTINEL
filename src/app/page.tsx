@@ -33,7 +33,7 @@ export default function Home() {
       <ThreatField />
 
       {/* The problem */}
-      <section className="bg-deep pt-16 pb-20 text-white sm:pt-20">
+      <section className="bg-grid-dark bg-deep pt-16 pb-20 text-white sm:pt-20">
         <Container>
           <div className="grid gap-8 md:grid-cols-[1.3fr_1fr] md:items-end">
             <div>
@@ -72,7 +72,7 @@ export default function Home() {
       </section>
 
       {/* Learning loop + proof */}
-      <section className="bg-deep py-20 text-white sm:py-28">
+      <section className="bg-grid-dark bg-deep py-20 text-white sm:py-28">
         <Container>
           <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.1fr]">
             <LearningLoop />

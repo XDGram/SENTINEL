@@ -16,8 +16,8 @@ const ArrowCircle = ({ stroke }: { stroke: string }) => (
 type Tone = "dark" | "light" | "accent";
 const TONE: Record<Tone, { cls: string; stroke: string }> = {
   dark: { cls: "bg-ink text-white hover:bg-ink/90", stroke: "#ffffff" },
-  light: { cls: "bg-white text-ink hover:bg-white/90", stroke: "#1e2a28" },
-  accent: { cls: "bg-white text-ink hover:bg-white/90", stroke: "#1e2a28" },
+  light: { cls: "bg-white text-ink hover:bg-white/90", stroke: "#0a0a0a" },
+  accent: { cls: "bg-white text-ink hover:bg-white/90", stroke: "#0a0a0a" },
 };
 
 /** Arrow CTA pill (Uiverse: alexmaracinaru/perfect-panda-77). */
@@ -107,10 +107,10 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
 export function WalletGlyph({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 26" fill="none" className={className} aria-hidden>
-      <rect x="0.54" y="6.29" width="21" height="4" rx="1.5" transform="rotate(-4.78 0.54 6.29)" fill="#3d7a74" stroke="#1e2a28" />
-      <circle cx="11.5" cy="5.5" r="4.5" fill="#ffffff" stroke="#d5dbd9" strokeWidth="2" />
-      <path d="M2.12 6.65C7.75 6.99 12.76 6.95 21.94 6.58C22.79 6.55 23.5 7.23 23.5 8.09V24C23.5 24.83 22.83 25.5 22 25.5H2C1.17 25.5 0.5 24.83 0.5 24V8.15C0.5 7.28 1.24 6.59 2.12 6.65Z" fill="#26332f" stroke="#1e2a28" />
-      <path d="M16 13.5H23.5V18.5H16C14.62 18.5 13.5 17.38 13.5 16C13.5 14.62 14.62 13.5 16 13.5Z" fill="#5b6865" stroke="#1e2a28" />
+      <rect x="0.54" y="6.29" width="21" height="4" rx="1.5" transform="rotate(-4.78 0.54 6.29)" fill="#525252" stroke="#0a0a0a" />
+      <circle cx="11.5" cy="5.5" r="4.5" fill="#ffffff" stroke="#e7e7e7" strokeWidth="2" />
+      <path d="M2.12 6.65C7.75 6.99 12.76 6.95 21.94 6.58C22.79 6.55 23.5 7.23 23.5 8.09V24C23.5 24.83 22.83 25.5 22 25.5H2C1.17 25.5 0.5 24.83 0.5 24V8.15C0.5 7.28 1.24 6.59 2.12 6.65Z" fill="#0a0a0a" stroke="#0a0a0a" />
+      <path d="M16 13.5H23.5V18.5H16C14.62 18.5 13.5 17.38 13.5 16C13.5 14.62 14.62 13.5 16 13.5Z" fill="#6b6b6b" stroke="#0a0a0a" />
     </svg>
   );
 }

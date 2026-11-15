@@ -99,7 +99,7 @@ export function HowItWorksStory() {
 
 function RequestCard({ children, dim }: { children?: React.ReactNode; dim?: boolean }) {
   return (
-    <div className={cn("relative w-full max-w-[340px] rounded-3xl bg-[#18221f] p-5 ring-1 ring-white/10 transition-opacity", dim && "opacity-60")}>
+    <div className={cn("relative w-full max-w-[340px] rounded-3xl bg-[#141414] p-5 ring-1 ring-white/10 transition-opacity", dim && "opacity-60")}>
       <MonoLabel className="text-white/40">Signature request</MonoLabel>
       <p className="mt-3 rounded-xl bg-white/[0.05] px-3 py-2 text-sm">
         <span className="text-white/45">from </span>usdt-rewards.xyz
