@@ -54,6 +54,11 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
   // Set synchronously, because the button's own click and the document-wide
   // listener both fire for the same press: without this the clip starts twice.
   const startingRef = useRef(false);
+  // The document-wide listener is registered once, so reading `voice` from the
+  // closure would see whatever it was at mount. The mute state in particular
+  // arrives a tick later, from storage, so it must be read through a ref.
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
 
   const finish = useCallback(() => {
     setPhase("hidden");
@@ -61,8 +66,16 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
     playedThisLoad.add(seenKey);
   }, [voice, seenKey]);
 
-  const attempt = useCallback(async (): Promise<boolean> => {
+  const attempt = useCallback(async (explicit = false): Promise<boolean> => {
     if (startedRef.current || startingRef.current) return true;
+    // Muted means no sound, but the invitation still shows: pressing it is a
+    // clear request to hear this, so it lifts the mute. A click elsewhere on
+    // the page is not, and leaves the mute alone.
+    const v = voiceRef.current;
+    if (v?.muted) {
+      if (!explicit) return false;
+      v.setMuted(false);
+    }
     startingRef.current = true;
     const a = (audioRef.current ??= new Audio(src));
     a.preload = "auto";
@@ -76,14 +89,14 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
     startedRef.current = true;
     setPhase("playing");
     // Nothing else should talk over an introduction.
-    voice?.stop();
+    voiceRef.current?.stop();
     try {
       window.sessionStorage.setItem(TOUR_KEY, "1");
     } catch {
       // Not essential.
     }
     return true;
-  }, [src, voice]);
+  }, [src]);
 
   const skip = useCallback(() => {
     const a = audioRef.current;
@@ -97,14 +110,24 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
   useEffect(() => {
     const forced = new URLSearchParams(window.location.search).get("intro") === "1";
     if (playedThisLoad.has(seenKey) && !forced) return;
-    if (voice?.muted) return;
 
     setPhase("offered");
     let cancelled = false;
+    // Read the mute flag straight from storage: the provider loads it in its
+    // own effect, which runs after this one, so trusting context here would
+    // try to speak to someone who had turned the voice off.
+    let mutedNow = false;
+    try {
+      mutedNow = window.localStorage.getItem("watchdog:voice-muted") === "1";
+    } catch {
+      // Unreadable storage just means we treat them as unmuted.
+    }
     // Someone already on the tour has audio unlocked, so this just starts.
-    void attempt().then((ok) => {
-      if (!ok && !cancelled) setPhase("offered");
-    });
+    if (!mutedNow) {
+      void attempt().then((ok) => {
+        if (!ok && !cancelled) setPhase("offered");
+      });
+    }
 
     const onPointerDown = (e: PointerEvent) => {
       const el = e.target as HTMLElement | null;
@@ -194,7 +217,7 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
     <div className={cn("flex items-center justify-center gap-1", className)}>
       <button
         type="button"
-        onClick={() => void attempt()}
+        onClick={() => void attempt(true)}
         className="group relative inline-flex items-center gap-2.5 rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-medium text-ink shadow-[0_8px_24px_-14px_rgb(0_0_0/.5)] transition-colors hover:bg-ink hover:text-white"
       >
         <span className="relative grid h-5 w-5 place-items-center">
