@@ -7,7 +7,6 @@ The single source of truth for the UI. Both build sessions follow it exactly.
 **Calm, trustworthy and human, for beginners who are scared of losing money.**
 - **Primary reference:** a soft, editorial AI-companion landing page. It pairs a light grey-green canvas, a large light serif headline and one dark centred input box with quick-action chips. A speckled particle band dissolves into a dark lower section.
 - **Secondary reference:** a technical SaaS page, used only for **detail styling**: monospace labels (`[N.01] > KEY VALUE`), numbered boxed cards (`// 001`), thin grid borders. Apply it to technical content only (reasoning traces, evidence IDs, Reppo eval IDs, the developer/API page).
-- Reference images: `docs/design-references/primary-reference.jpg` and `secondary-reference.jpg` (internal only, not shipped in the app).
 - **Style references only.** Use our own name, copy, colours and layout. Copy no branding, artwork or text.
 
 ## Stack (no hand-written HTML pages)
