@@ -9,9 +9,9 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 
 export const metadata: Metadata = {
-  title: "Watchdog · Know before you sign",
+  title: "Watchdog · Spots a scam once, stops it for everyone",
   description:
-    "Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every time an attack is verified through Reppo.",
+    "Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every attacker it has already seen. Verified through Reppo, shared with everyone.",
 };
 
 export const viewport: Viewport = {

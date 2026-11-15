@@ -54,8 +54,8 @@ The single source of truth for the UI. Both build sessions follow it exactly.
 ### `/`: Home
 1. **Nav:** wordmark "Watchdog" left; links `Check`, `Demo`, `Threat memory`, `Developers`; right "Try the demo" dark pill.
 2. **Hero** (light canvas):
-   - Serif headline, 2 lines: *"Know before you sign."* / *"Wallet safety that learns."*
-   - Sub-line: "Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every time an attack is verified."
+   - Serif headline, 2 lines: *"Spots a scam once."* / *"Stops it for everyone."*
+   - Sub-line: "Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every attacker it has already seen."
 3. **Ask Watchdog box** (dark `ink`, centred, ~560px):
    - Placeholder: "Paste a wallet address, contract, or a suspicious link…"
    - Auto-detects input: a 0x address shows two choices, *Scan this wallet's approvals* and *Check this address*. Anything else is sent to `/api/check`. Messy chat text is fine, since the backend normalises it.

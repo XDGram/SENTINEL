@@ -11,7 +11,7 @@ export function Footer() {
             <Logo onDark className="h-7 w-7" /> <span className="font-medium">Watchdog</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-6">
-            Wallet safety that learns. Built for SERV Hackathon 02, Reppo track, on SERV Reasoning and Reppo evaluations.
+            Spots a scam once, stops it for everyone. Built for SERV Hackathon 02, Reppo track, on SERV Reasoning and Reppo evaluations.
           </p>
         </div>
         <div>

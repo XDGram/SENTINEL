@@ -17,14 +17,14 @@ export default function Home() {
         <Container className="text-center">
           <MonoLabel className="text-ink-soft">Wallet safety agent · SERV Reasoning × Reppo</MonoLabel>
           <h1 className="font-display mx-auto mt-5 max-w-3xl text-[44px] leading-[1.04] text-ink sm:text-[68px]">
-            <WordsReveal text="Know before you sign." />
+            <WordsReveal text="Spots a scam once." />
             <br />
-            <WordsReveal text="Wallet safety that learns." className="text-ink/75 italic" delay={0.35} />
+            <WordsReveal text="Stops it for everyone." className="text-ink/75 italic" delay={0.35} />
           </h1>
           <Reveal delay={0.7}>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-ink-soft">
-            Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every
-            time an attack is verified.
+            Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every
+            attacker it has already seen.
           </p>
           </Reveal>
           <div className="mt-10 text-left">

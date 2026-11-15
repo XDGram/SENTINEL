@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { motion } from "motion/react";
 
 /** Fades and lifts its children in when scrolled into view. */
@@ -23,17 +24,22 @@ export function WordsReveal({ text, className, delay = 0 }: { text: string; clas
   return (
     <span className={className} aria-label={text}>
       {words.map((w, i) => (
-        <span key={i} className="inline-block overflow-hidden pb-[0.12em] align-bottom" aria-hidden>
-          <motion.span
-            className="inline-block"
-            initial={{ y: "105%" }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.8, delay: delay + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {w}
-            {i < words.length - 1 ? " " : ""}
-          </motion.span>
-        </span>
+        // The space has to sit between the word wrappers, not inside them: a
+        // trailing space within an inline-block is trimmed by the browser, so
+        // putting it inside ran every word together.
+        <Fragment key={i}>
+          <span className="inline-block overflow-hidden pb-[0.12em] align-bottom" aria-hidden>
+            <motion.span
+              className="inline-block"
+              initial={{ y: "105%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, delay: delay + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {w}
+            </motion.span>
+          </span>
+          {i < words.length - 1 ? " " : ""}
+        </Fragment>
       ))}
     </span>
   );

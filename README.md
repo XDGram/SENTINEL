@@ -1,6 +1,8 @@
 # Watchdog
 
-**Learns from the first user's attack, gets it verified through Reppo, then protects the next person.**
+**Spots a scam once. Stops it for everyone.**
+
+Watchdog learns from the first user's attack, gets it verified through Reppo, then protects everyone who meets that attacker next.
 
 Watchdog is a wallet safety agent for people new to crypto. Before you send funds or sign something, Watchdog checks the action, tells you in plain English whether it is safe or risky, shows the evidence behind that answer, and offers a safe fix: use the correct address, cancel, revoke or reduce an allowance.
 
