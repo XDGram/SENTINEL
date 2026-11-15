@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { analyzeAction } from "@/lib/analyze";
-import type { AnalyzeRequest } from "@/lib/types";
+import type { AnalyzeRequest, Language } from "@/lib/types";
+
+/** Languages the explanation can be returned in. */
+const SUPPORTED: Language[] = ["en", "fr", "es"];
 import { clientKey, rateLimit, validateAction } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +23,10 @@ export async function POST(req: Request) {
   const invalid = validateAction(body.action);
   if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   try {
-    // English only for now; other languages come later.
-    const analysis = await analyzeAction({ ...body, language: "en" });
+    // Only languages SERV has been exercised in are accepted; anything else
+    // falls back to English rather than guessing at a translation.
+    const language: Language = SUPPORTED.includes(body.language as Language) ? (body.language as Language) : "en";
+    const analysis = await analyzeAction({ ...body, language });
     return NextResponse.json(analysis);
   } catch (err) {
     console.error("analyze failed", err);

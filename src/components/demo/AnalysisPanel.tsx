@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, ShieldCheck, X } from "lucide-react";
-import type { Analysis, Threat, WalletAction } from "@/lib/types";
+import type { Analysis, Language, Threat, WalletAction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { Button, MonoLabel } from "@/components/ui";
 import {
@@ -15,6 +15,7 @@ import {
   VerdictHeader,
 } from "@/components/sentinel";
 import { ExplainButton } from "@/components/voice";
+import { LanguagePicker } from "@/components/sentinel/LanguagePicker";
 import { composeBreakdownSpeech } from "@/lib/speech-text";
 import type { IntelSourceId } from "@/lib/types";
 
@@ -52,6 +53,8 @@ export function AnalysisPanel({
   onClose,
   onReppoSettled,
   fixing,
+  language,
+  onLanguage,
 }: {
   panel: PanelState | null;
   onFix: () => void;
@@ -60,6 +63,8 @@ export function AnalysisPanel({
   onClose?: () => void;
   onReppoSettled?: (t: Threat) => void;
   fixing: boolean;
+  language?: Language;
+  onLanguage?: (l: Language) => void;
 }) {
   if (!panel) {
     return (
@@ -109,6 +114,10 @@ export function AnalysisPanel({
 
           {/* The verdict already reads its headline aloud. This talks the whole
               finding through for someone who wants it broken down. */}
+          {language && onLanguage && (
+            <LanguagePicker value={language} onChange={onLanguage} busy={!a} />
+          )}
+
           {a.verdict !== "safe" && (
             <ExplainButton
               id={`explain:${panel.action.id}:${a.fingerprint ?? a.headline}`}

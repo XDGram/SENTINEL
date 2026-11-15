@@ -4,7 +4,7 @@ import { BadgeCheck, RotateCcw, ShieldAlert, Zap } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
-import type { Threat, Wallet, WalletAction } from "@/lib/types";
+import type { Language, Threat, Wallet, WalletAction } from "@/lib/types";
 import { DRAINER_POOL, initialWallets, SCENARIOS, withDrainer, type Scenario } from "@/lib/sim-data";
 import { api, ApiError } from "@/lib/client/api";
 import { useHealth, useThreats } from "@/lib/client/hooks";
@@ -45,6 +45,10 @@ export function DemoClient() {
   const [phones, setPhones] = useState<Record<Id, PhoneState>>({ A: { view: "home" }, B: { view: "home" } });
   const [panel, setPanel] = useState<PanelState | null>(null);
   const [fixing, setFixing] = useState(false);
+  const [language, setLanguage] = useState<Language>("en");
+  // The scenario behind the open panel, so a language change can re-run the
+  // same request rather than inventing one.
+  const lastScenario = useRef<Scenario | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const setPhone = (id: Id, s: PhoneState) => setPhones((p) => ({ ...p, [id]: s }));
@@ -67,12 +71,13 @@ export function DemoClient() {
     }));
   };
 
-  const analyze = async (id: Id, scenario: Scenario, action: WalletAction) => {
+  const analyze = async (id: Id, scenario: Scenario, action: WalletAction, lang: Language = language) => {
+    lastScenario.current = scenario;
     setPhone(id, { view: "checking", scenario, action });
     setPanel({ walletId: id, owner: wallets[id].owner, action, analysis: null });
     showPanel();
     try {
-      const a = await api.analyze(action, id);
+      const a = await api.analyze(action, id, lang);
       setPanel({ walletId: id, owner: wallets[id].owner, action, analysis: a });
       if (a.matchedThreatId) {
         toast({
@@ -190,6 +195,14 @@ export function DemoClient() {
 
   const h = health.data;
 
+  // Switching language re-runs the same action, so the explanation, the
+  // reasoning and the spoken verdict all come back in it.
+  const onLanguage = (next: Language) => {
+    setLanguage(next);
+    const scenario = lastScenario.current;
+    if (panel && scenario) void analyze(panel.walletId, scenario, panel.action, next);
+  };
+
   return (
     <div>
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -270,6 +283,8 @@ export function DemoClient() {
         ))}
         <div ref={panelRef} className="scroll-mt-20 lg:sticky lg:top-20 lg:self-start">
           <AnalysisPanel
+          language={language}
+          onLanguage={onLanguage}
             panel={panel}
             fixing={fixing}
             onFix={fix}

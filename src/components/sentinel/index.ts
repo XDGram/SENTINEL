@@ -6,3 +6,4 @@ export { ReppoStatusCard } from "./ReppoStatusCard";
 export { MemoryCatchBanner } from "./MemoryCatchBanner";
 export { CheckResult, ResultSkeleton, ResultError } from "./CheckResult";
 export { WalletScanReport } from "./WalletScanReport";
+export { LanguagePicker, EXPLAIN_LANGUAGES } from "./LanguagePicker";

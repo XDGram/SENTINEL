@@ -103,7 +103,9 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
   }
 
   // 4. SERV Reasoning
-  const cacheKey = JSON.stringify([req.walletId, req.action, intel.flaggedBy, findings.map((f) => f.indicator + f.severity)]);
+  // The language is part of the key: without it, asking in French returns the
+  // cached English answer.
+  const cacheKey = JSON.stringify([req.language, req.walletId, req.action, intel.flaggedBy, findings.map((f) => f.indicator + f.severity)]);
   let serv = servCache.get(cacheKey) ?? null;
   let servNote: string | null = null;
   if (!serv && servAvailable()) {

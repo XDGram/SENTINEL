@@ -11,10 +11,12 @@ export type AttackType =
 
 export type Verdict = "safe" | "risky" | "uncertain";
 
-export type Language = "en" | "pcm" | "ha" | "yo";
+export type Language = "en" | "fr" | "es" | "pcm" | "ha" | "yo";
 
 export const LANGUAGES: Record<Language, string> = {
   en: "English",
+  fr: "French",
+  es: "Spanish",
   pcm: "Pidgin",
   ha: "Hausa",
   yo: "Yorùbá",

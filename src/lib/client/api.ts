@@ -7,6 +7,7 @@ import type {
   AskResponse,
   IntelReport,
   IntelSourceId,
+  Language,
   SubmitResponse,
   Threat,
   ThreatsResponse,
@@ -132,16 +133,16 @@ export interface StatusResponse {
   reppo?: unknown;
 }
 
-export type { FeedResponse, ApprovalFinding, ServCheck, ServScan, Verdict };
+export type { FeedResponse, ApprovalFinding, ServCheck, ServScan, Verdict, Language };
 
 // ---- Calls ----
 
 export const api = {
   health: () => request<Health>("/api/health"),
-  analyze: (action: WalletAction, walletId: "A" | "B") =>
-    post<Analysis>("/api/analyze", { action, walletId, language: "en" } satisfies AnalyzeRequest),
-  ask: (action: WalletAction, analysis: Analysis, question: string) =>
-    post<AskResponse>("/api/ask", { action, analysis, question, language: "en" } satisfies AskRequest),
+  analyze: (action: WalletAction, walletId: "A" | "B", language: Language = "en") =>
+    post<Analysis>("/api/analyze", { action, walletId, language } satisfies AnalyzeRequest),
+  ask: (action: WalletAction, analysis: Analysis, question: string, language: Language = "en") =>
+    post<AskResponse>("/api/ask", { action, analysis, question, language } satisfies AskRequest),
   check: (input: string) => post<CheckResponse>("/api/check", { input }),
   scanWallet: (address: string) => post<ScanResponse>("/api/scan/wallet", { address }),
   submitToReppo: (fingerprint: string, walletId: "A" | "B") =>
