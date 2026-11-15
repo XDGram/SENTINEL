@@ -17,12 +17,12 @@ This is the real run on the deployed app, read back from the Supabase `threats` 
 | Time | Event |
 |---|---|
 | 14:15:05 | Ada (wallet A) meets the USDT-rewards drainer `0x4341…a67b` on `usdt-rewards.xyz`. Rules flag a permit; GoPlus and ScamSniffer both list the spender. Threat discovered. |
-| 14:15:08 | Sent to Reppo, eval `cmwhx2cwc000008l8u5dc3t9a`. |
+| 14:15:07 | Sent to Reppo, eval `cmwhx2cwc000008l8u5dc3t9a`. |
 | 14:18:14 | Reppo: **reject, 65/100**. Not added to threat memory. |
 | | Fixes from that feedback: the evidence packet now discloses what is simulated, includes the safe fix and the source-independence caveats, and Sentinel's confidence is calibrated. |
-| 14:24:48 | Resubmitted (the one allowed retry), eval `cmwhxesn0000107jtf2a6m7ry`. |
+| 14:24:47 | Resubmitted (the one allowed retry), eval `cmwhxesn0000107jtf2a6m7ry`. |
 | 14:31:16 | Reppo: **accept, 96/100** (Reppo reported low confidence). Added to threat memory. |
-| 14:31:18 | Bayo (wallet B) meets the same drainer on a different site, `usdt-erc20.network`. **Blocked from threat memory before signing, with no SERV call and no source lookups.** |
+| 14:31:17 | Bayo (wallet B) meets the same drainer on a different site, `usdt-erc20.network`. **Blocked from threat memory before signing, with no SERV call and no source lookups.** |
 
 `GET /api/stats` returns these counts and evaluations live, and `GET /api/feed` returns the verified threat.
 

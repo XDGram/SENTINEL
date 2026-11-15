@@ -63,13 +63,13 @@ The payload sent to Reppo is built on the server. Clients can't submit arbitrary
 ```
 14:15:05  discovered   wallet A, spender 0x4341…a67b via usdt-rewards.xyz
                        (GoPlus + ScamSniffer flag it)
-14:15:08  submitted    eval cmwhx2cwc000008l8u5dc3t9a
+14:15:07  submitted    eval cmwhx2cwc000008l8u5dc3t9a
 14:18:14  rejected     reject, score 65/100
           fixes: packet discloses simulation, includes the safe fix and
           source-independence caveats; confidence calibrated
-14:24:48  submitted    eval cmwhxesn0000107jtf2a6m7ry  (the one allowed resubmit)
+14:24:47  submitted    eval cmwhxesn0000107jtf2a6m7ry  (the one allowed resubmit)
 14:31:16  verified     accept, score 96/100 (Reppo: low confidence)
-14:31:18  caught       wallet B (Bayo), same drainer on usdt-erc20.network:
+14:31:17  caught       wallet B (Bayo), same drainer on usdt-erc20.network:
                        blocked from memory, no SERV call, no source lookups
 ```
 
