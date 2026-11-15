@@ -77,8 +77,8 @@ The payload sent to Reppo is built on the server. Clients can't submit arbitrary
 
 Supabase Postgres holds the `threats`, `threat_events` and `intel_sweeps` tables (migrations in `supabase/migrations/`).
 
-**Access** (`20261115020000_app_key_access.sql`). The server uses the public publishable key (`SUPABASE_PUBLISHABLE_KEY`) and sends a server-only secret (`SENTINEL_DB_KEY`) as the `x-sentinel-key` header.
-- RLS policies on all three tables call `sentinel_request_ok()`. That function compares the header's SHA-256 with a hash stored in `private.app_key`.
+**Access** (`20261115020000_app_key_access.sql`). The server uses the public publishable key (`SUPABASE_PUBLISHABLE_KEY`) and sends a server-only secret (`WATCHDOG_DB_KEY`) as the `x-watchdog-key` header.
+- RLS policies on all three tables call `watchdog_request_ok()`. That function compares the header's SHA-256 with a hash stored in `private.app_key`.
 - A request carrying only the public key, such as one from a browser, sees and changes nothing.
 - The hash is inserted outside migrations, so no secret is in git.
 - `SUPABASE_SERVICE_ROLE_KEY` still works as an alternative.

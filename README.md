@@ -122,7 +122,7 @@ A threat enters threat memory only when all three checks pass:
 - **Next.js 15** (App Router, API routes) with React 19 and Tailwind CSS 4
 - **SERV Reasoning** through an OpenAI-compatible client
 - **Reppo Evaluation API**
-- **Supabase** (Postgres) for threat memory: `threats`, `threat_events` and `intel_sweeps` tables. The server connects with the public **publishable key plus a server-only secret** (`SENTINEL_DB_KEY`), sent as an `x-sentinel-key` header. RLS policies allow access only when that header's SHA-256 matches a hash stored in a private schema (migration `20261115020000_app_key_access.sql`). A browser holding only the publishable key gets nothing. The service role key is not needed.
+- **Supabase** (Postgres) for threat memory: `threats`, `threat_events` and `intel_sweeps` tables. The server connects with the public **publishable key plus a server-only secret** (`WATCHDOG_DB_KEY`), sent as an `x-watchdog-key` header. RLS policies allow access only when that header's SHA-256 matches a hash stored in a private schema (migration `20261115020000_app_key_access.sql`). A browser holding only the publishable key gets nothing. The service role key is not needed.
 - **Vercel** for hosting and the daily cron sweep
 
 ## Run locally
@@ -141,14 +141,14 @@ Environment variables (see [`.env.example`](.env.example)):
 | `SERV_MAX_CALLS_PER_DAY` | Daily SERV budget (default 300) |
 | `REPPO_API_KEY` | Reppo Evaluation API |
 | `REPPO_MAX_SUBMISSIONS` | Safety cap on demo evaluations |
-| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SENTINEL_DB_KEY` | Threat memory: public key plus the server-only secret checked by RLS |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `WATCHDOG_DB_KEY` | Threat memory: public key plus the server-only secret checked by RLS |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional alternative to the two keys above |
 | `TAVILY_API_KEY` or `BRAVE_API_KEY` | Web search for community reports |
 | `CRON_SECRET` | Protects the scheduled intel sweep |
 
 Every key is optional for local dev. Without Supabase, threat memory falls back to an in-process store that resets on restart. Without SERV, analyses are labelled as rules + sources only.
 
-To set up the database, run the SQL in [`supabase/migrations/`](supabase/migrations) against your Supabase project (SQL editor or `supabase db push`). Then store the hash of your `SENTINEL_DB_KEY` (outside git): `insert into private.app_key (secret_hash) values (encode(sha256(convert_to('<your key>', 'UTF8')), 'hex'));`
+To set up the database, run the SQL in [`supabase/migrations/`](supabase/migrations) against your Supabase project (SQL editor or `supabase db push`). Then store the hash of your `WATCHDOG_DB_KEY` (outside git): `insert into private.app_key (secret_hash) values (encode(sha256(convert_to('<your key>', 'UTF8')), 'hex'));`
 
 Keys live only in environment variables. They never appear in code, commits, prompts or client bundles.
 
@@ -172,9 +172,9 @@ Keys live only in environment variables. They never appear in code, commits, pro
 `GET /api/feed` is what wallets, exchanges and dApps would pay for. It returns **only Reppo-verified threats**, never discovered or rejected ones.
 
 ```bash
-curl https://sentinel-three-cyan.vercel.app/api/feed
-curl "https://sentinel-three-cyan.vercel.app/api/feed?indicator=0x43412801d29861ecc4c4d86e5becfd16af86a67b"
-curl "https://sentinel-three-cyan.vercel.app/api/feed?domain=usdt-rewards.xyz"
+curl https://watchdog-reppo.vercel.app/api/feed
+curl "https://watchdog-reppo.vercel.app/api/feed?indicator=0x43412801d29861ecc4c4d86e5becfd16af86a67b"
+curl "https://watchdog-reppo.vercel.app/api/feed?domain=usdt-rewards.xyz"
 ```
 
 Each entry includes:

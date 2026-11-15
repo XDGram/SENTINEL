@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "Query Watchdog's Reppo-verified threat feed and plain-English risk checks from your wallet, exchange or dApp.",
 };
 
-const BASE = "https://sentinel-three-cyan.vercel.app";
+const BASE = "https://watchdog-reppo.vercel.app";
 
 const ENDPOINTS: { n: string; method: "GET" | "POST"; path: string; title: string; body: string; curl: string }[] = [
   {

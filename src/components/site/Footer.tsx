@@ -31,7 +31,7 @@ export function Footer() {
             <Link className="hover:text-white" href="/demo">Demo</Link>
             <Link className="hover:text-white" href="/memory">Threat memory</Link>
             <Link className="hover:text-white" href="/developers">Developers</Link>
-            <a className="hover:text-white" href="https://github.com/XDGram/SENTINEL" target="_blank" rel="noreferrer">GitHub</a>
+            <a className="hover:text-white" href="https://github.com/XDGram/WatchDog" target="_blank" rel="noreferrer">GitHub</a>
           </div>
         </div>
       </Container>

@@ -403,12 +403,12 @@ function store(): Backend {
   // Alternative to the service key: the public key plus a server-only secret
   // header that RLS checks (see supabase/migrations/*_app_key_access.sql).
   const publicKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const appKey = process.env.SENTINEL_DB_KEY;
+  const appKey = process.env.WATCHDOG_DB_KEY;
   g.__watchdogBackend =
     url && key
       ? supabaseBackend(url, key)
       : url && publicKey && appKey
-        ? supabaseBackend(url, publicKey, { "x-sentinel-key": appKey })
+        ? supabaseBackend(url, publicKey, { "x-watchdog-key": appKey })
         : memoryBackend();
   return g.__watchdogBackend;
 }

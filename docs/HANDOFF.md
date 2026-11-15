@@ -3,8 +3,8 @@
 Deadline: **Nov 15 2026, 23:59 UTC**. Target submission ~22:00 UTC.
 
 ## Where things are
-- Live site: https://sentinel-three-cyan.vercel.app (Vercel project `sentinel`, team `timeb7208-5361s-projects`, team id `team_aehGbVQxuk4rXpTFzXyLre8R`).
-- Repo: `XDGram/SENTINEL` (public). Work branch `claude/admiring-galileo-9rshh0`; **production deploys from `main`** (push the branch to `main` with a fast-forward after every finished change).
+- Live site: https://watchdog-reppo.vercel.app (Vercel project `watchdog`, team `timeb7208-5361s-projects`, team id `team_aehGbVQxuk4rXpTFzXyLre8R`).
+- Repo: `XDGram/WatchDog` (public). Work branch `claude/admiring-galileo-9rshh0`; **production deploys from `main`** (push the branch to `main` with a fast-forward after every finished change).
 - Supabase project `gnnxxsifynkngdsbrbix` (threat memory). Server access is publishable key + server secret header checked by RLS (migration `20261115020000_app_key_access.sql`). No service key is used.
 - Docs: `README.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN.md`.
 
@@ -40,4 +40,4 @@ Deadline: **Nov 15 2026, 23:59 UTC**. Target submission ~22:00 UTC.
 4. **Demo video script** (~2 min), **X post** draft, then the owner submits at openserv.typeform.com/submissions02 with the X post link.
 
 ## Local dev
-`npm i && npm run dev`. To hit real services locally set in the shell (not in files): `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SENTINEL_DB_KEY`, `SERV_API_KEY`, `SERV_MODEL=gpt-6-luna`, `ETHERSCAN_API_KEY`. Without them it runs in memory/rules-only mode.
+`npm i && npm run dev`. To hit real services locally set in the shell (not in files): `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `WATCHDOG_DB_KEY`, `SERV_API_KEY`, `SERV_MODEL=gpt-6-luna`, `ETHERSCAN_API_KEY`. Without them it runs in memory/rules-only mode.
