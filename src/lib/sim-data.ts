@@ -1,6 +1,8 @@
 // Simulated wallets and scenarios for the two-wallet demo.
-// Everything here is simulated data, not live chain state. All addresses
-// below except well-known public token/protocol contracts are made up.
+// Wallet balances, history and the victims' addresses are simulated.
+// The ATTACKER indicators (drainer addresses, phishing domains) are real
+// entries from public scam databases (ScamSniffer / GoPlus), so the intel
+// layer's lookups against live sources are genuine.
 
 import type { Wallet, WalletAction } from "./types";
 
@@ -18,14 +20,22 @@ export const MAMA_NGOZI = "0x4E91b07C2d5aF83e6B1c0D9f7A2e5B3c8d6F12a0";
 export const BAYO_ADDR = "0x2B6c8E1f4A9d03C7e5b2F8a1D6c9E0f3B7a4C58e";
 export const ADA_ADDR = "0x9C1e5A7b3D8f2E06a4C9b1F7d3E8a2C6b0D4f7E3";
 
-// Attacker: lookalike of Chidi (same first 4 and last 4 hex characters)
+// Attacker: lookalike of Chidi (same first 4 and last 4 hex characters).
+// Simulated: poisoning addresses are generated per victim, so this one is made up.
 export const POISONER = "0x7a3F1b8c09E2a4D7f3B6e015C8a9D2b47E0fd91B";
 
-// Attacker spender behind the fake "USDT rewards" sites (new, unseen attack)
-export const DRAINER_SPENDER = "0xD4a1C0e7f9B2d6A83E5c1F0b7a9D2E4c6B8f3a71";
+// Attacker spender behind the fake "USDT rewards" sites (new to Sentinel's memory).
+// Real address listed in ScamSniffer's blacklist (GoPlus: phishing activities).
+export const DRAINER_SPENDER = "0x43412801d29861ecc4c4d86e5becfd16af86a67b";
 
-// Attacker behind the fake Uniswap clone
-export const FAKE_ROUTER = "0x5e1F8a2B9c4D7e03A6b1C8f5D2e9A4b7C0d3E6f1";
+// Attacker contract behind the fake Uniswap clone.
+// Real contract listed in ScamSniffer's blacklist (GoPlus: phishing activities).
+export const FAKE_ROUTER = "0x101ce0cedd142f199c9ef61739ae59b6611a0fc0";
+
+// Real phishing domains from public lists (GoPlus / ScamSniffer).
+export const PHISH_REWARDS_SITE = "https://usdt-rewards.xyz/claim";
+export const PHISH_UNISWAP_SITE = "https://uniswap.lc/swap";
+export const PHISH_BONUS_SITE = "https://usdt-erc20.network/bonus";
 
 export const KNOWN_SPENDERS: Record<string, string> = {
   "0x000000000022d473030f116ddee9f6b43ac78ba3": "Uniswap Permit2",
@@ -170,7 +180,7 @@ export const SCENARIOS: Scenario[] = [
       to: DRAINER_SPENDER,
       token: USDT,
       amount: MAX,
-      dapp: { name: "USDT Rewards", url: "https://usdt-rewards.xyz/claim" },
+      dapp: { name: "USDT Rewards", url: PHISH_REWARDS_SITE },
       typedData: {
         primaryType: "Permit",
         domain: { name: "Tether USD", chainId: 1, verifyingContract: USDT.address },
@@ -198,7 +208,7 @@ export const SCENARIOS: Scenario[] = [
       to: FAKE_ROUTER,
       token: USDT,
       amount: MAX,
-      dapp: { name: "Uniswap", url: "https://app-uniswap.org.swap-v4.io" },
+      dapp: { name: "Uniswap", url: PHISH_UNISWAP_SITE },
     },
   },
   {
@@ -223,7 +233,7 @@ export const SCENARIOS: Scenario[] = [
     walletId: "B",
     tag: "repeat-attack",
     title: "Claim USDT bonus",
-    story: "A WhatsApp broadcast sends Bayo to usdt-bonus.app. The site asks him to sign a message.",
+    story: "A WhatsApp broadcast sends Bayo to a USDT bonus site. It asks him to sign a message.",
     action: {
       id: "b-bonus",
       kind: "permit",
@@ -232,7 +242,7 @@ export const SCENARIOS: Scenario[] = [
       to: DRAINER_SPENDER,
       token: USDT,
       amount: MAX,
-      dapp: { name: "USDT Bonus", url: "https://usdt-bonus.app/" },
+      dapp: { name: "USDT Bonus", url: PHISH_BONUS_SITE },
       typedData: {
         primaryType: "Permit",
         domain: { name: "Tether USD", chainId: 1, verifyingContract: USDT.address },

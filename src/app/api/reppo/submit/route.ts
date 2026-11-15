@@ -37,6 +37,16 @@ export async function POST(req: Request) {
     };
     return NextResponse.json(res, { status: 409 });
   }
+  // Verification policy: rule evidence + at least one independent external source
+  // + SERV recommendation, before Reppo is asked to verify.
+  if (!threat.externalSources?.length) {
+    const res: SubmitResponse = {
+      threat,
+      status: "BLOCKED",
+      message: "No independent external source has corroborated this yet, so it is not sent to Reppo.",
+    };
+    return NextResponse.json(res, { status: 409 });
+  }
   if ((await countSubmissions()) >= MAX_SUBMISSIONS) {
     const res: SubmitResponse = { threat, status: "BLOCKED", message: "Demo submission limit reached." };
     return NextResponse.json(res, { status: 429 });

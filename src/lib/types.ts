@@ -72,7 +72,40 @@ export interface Wallet {
   approvals: { token: string; spender: string; spenderName: string; amount: string }[];
 }
 
-export type EvidenceSource = "rules" | "serv" | "threat-memory" | "chain" | "reppo";
+export type EvidenceSource = "rules" | "serv" | "threat-memory" | "chain" | "reppo" | "intel";
+
+// ---- External threat intelligence ----
+
+export type IntelSourceId = "goplus" | "scamsniffer" | "metamask" | "web";
+
+/** What one external source says about one indicator. */
+export interface IntelReport {
+  source: IntelSourceId;
+  /** Human name, e.g. "GoPlus Security", "ScamSniffer database", "Reddit". */
+  sourceName: string;
+  /** The indicator checked, e.g. "address:0x…", "domain:example.xyz". */
+  indicator: string;
+  verdict: "malicious" | "suspicious" | "clean" | "unknown" | "error";
+  /** One-line summary of what the source says. */
+  summary: string;
+  url?: string;
+  /** Upstream data providers, when the source says (for honesty about independence). */
+  upstream?: string[];
+  /** For web results: title and snippet of the page. */
+  title?: string;
+  snippet?: string;
+  publishedAt?: string;
+  fetchedAt: string;
+}
+
+export interface IntelBundle {
+  reports: IntelReport[];
+  /** Independent sources that flagged the indicator as malicious or suspicious. */
+  flaggedBy: IntelSourceId[];
+  /** Sources that were not configured or failed, so the UI can be honest. */
+  unavailable: { source: IntelSourceId; reason: string }[];
+  tookMs: number;
+}
 
 /** One claim with the evidence behind it. */
 export interface Evidence {
@@ -129,6 +162,8 @@ export interface Analysis {
   /** SERV's decision: is this new attack worth sending to Reppo? */
   shouldSubmitToReppo: boolean;
   submitReason?: string;
+  /** External intel gathered for this action (GoPlus, ScamSniffer, MetaMask, web reports). */
+  intel?: IntelBundle;
   latencyMs?: number;
 }
 
@@ -154,6 +189,8 @@ export interface Threat {
   reppoPacket?: string;
   /** SERV's decision on whether this is worth verifying. */
   servRecommendsSubmit?: boolean;
+  /** Independent external sources that flagged this attacker (GoPlus, ScamSniffer, ...). */
+  externalSources?: IntelSourceId[];
 }
 
 export type ThreatEventKind = "discovered" | "submitted" | "verified" | "rejected" | "failed" | "caught";
@@ -166,6 +203,22 @@ export interface ThreatEvent {
   /** Which simulated user triggered it, if any. */
   walletId?: "A" | "B";
   detail: string;
+}
+
+/** Result of one background intel sweep (Sentinel actively gathering new threats). */
+export interface IntelSweep {
+  id: string;
+  at: string;
+  /** Blocklist sizes after refresh. */
+  totals: { scamsnifferDomains: number; scamsnifferAddresses: number; metamaskBlacklist: number };
+  /** Entries newly added since the previous sweep (sample; null on the first, baseline sweep). */
+  newDomains: string[] | null;
+  newAddresses: string[] | null;
+  newDomainCount: number | null;
+  newAddressCount: number | null;
+  /** Fresh community reports of wallet attacks (Reddit, YouTube, X, blogs). */
+  communityReports: IntelReport[];
+  errors: string[];
 }
 
 // ---- API request / response shapes ----

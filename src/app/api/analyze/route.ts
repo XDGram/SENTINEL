@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "action and walletId are required" }, { status: 400 });
   }
   try {
-    const analysis = await analyzeAction({ ...body, language: body.language ?? "en" });
+    // English only for now; other languages come later.
+    const analysis = await analyzeAction({ ...body, language: "en" });
     return NextResponse.json(analysis);
   } catch (err) {
     console.error("analyze failed", err);

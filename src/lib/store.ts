@@ -3,15 +3,16 @@
 // To be replaced by Supabase behind this same interface. Keep the function
 // signatures stable so the API routes don't change.
 
-import type { AttackType, Threat, ThreatEvent, ThreatEventKind, ThreatStatus } from "./types";
+import type { AttackType, IntelSourceId, IntelSweep, Threat, ThreatEvent, ThreatEventKind, ThreatStatus } from "./types";
 
 interface Db {
   threats: Map<string, Threat>;
   events: ThreatEvent[];
+  sweeps: IntelSweep[];
 }
 
 const g = globalThis as unknown as { __sentinelDb?: Db };
-const db: Db = (g.__sentinelDb ??= { threats: new Map(), events: [] });
+const db: Db = (g.__sentinelDb ??= { threats: new Map(), events: [], sweeps: [] });
 
 const id = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 const now = () => new Date().toISOString();
@@ -53,6 +54,7 @@ export async function createThreat(input: {
   walletId?: "A" | "B";
   reppoPacket?: string;
   servRecommendsSubmit?: boolean;
+  externalSources?: IntelSourceId[];
 }): Promise<Threat> {
   const existing = await findThreatByFingerprint(input.fingerprint);
   if (existing) {
@@ -61,6 +63,7 @@ export async function createThreat(input: {
       return (await updateThreat(existing.id, {
         reppoPacket: input.reppoPacket,
         servRecommendsSubmit: input.servRecommendsSubmit,
+        externalSources: input.externalSources,
       }))!;
     }
     return existing;
@@ -76,6 +79,7 @@ export async function createThreat(input: {
     caughtCount: 0,
     reppoPacket: input.reppoPacket,
     servRecommendsSubmit: input.servRecommendsSubmit,
+    externalSources: input.externalSources,
   };
   db.threats.set(t.id, t);
   await addEvent({ threatId: t.id, kind: "discovered", walletId: input.walletId, detail: input.summary });
@@ -118,4 +122,15 @@ export async function addEvent(e: Omit<ThreatEvent, "id" | "at">): Promise<Threa
   const event: ThreatEvent = { id: id("evt"), at: now(), ...e };
   db.events.push(event);
   return event;
+}
+
+export async function saveSweep(sweep: Omit<IntelSweep, "id">): Promise<IntelSweep> {
+  const saved: IntelSweep = { id: id("swp"), ...sweep };
+  db.sweeps.push(saved);
+  if (db.sweeps.length > 50) db.sweeps.shift();
+  return saved;
+}
+
+export async function listSweeps(limit = 10): Promise<IntelSweep[]> {
+  return [...db.sweeps].reverse().slice(0, limit);
 }

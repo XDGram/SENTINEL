@@ -4,7 +4,7 @@
 
 import "server-only";
 import OpenAI from "openai";
-import type { Analysis, Language, RuleFinding, Wallet, WalletAction } from "./types";
+import type { Analysis, IntelBundle, Language, RuleFinding, Wallet, WalletAction } from "./types";
 
 export const SERV_BASE_URL = "https://inference-api.openserv.ai/v1";
 export const SERV_MODEL = process.env.SERV_MODEL || "gpt-5.4-mini";
@@ -24,6 +24,8 @@ export interface ServAnalyzeInput {
   action: WalletAction;
   wallet: Wallet;
   findings: RuleFinding[];
+  /** External intel (GoPlus, ScamSniffer, MetaMask, web reports). Use intelForPrompt() from ./intel. */
+  intel: IntelBundle;
   language: Language;
 }
 
