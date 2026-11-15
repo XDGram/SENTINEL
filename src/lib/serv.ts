@@ -391,3 +391,250 @@ export async function servAsk(input: {
   const answer = text?.trim();
   return answer ? answer : null;
 }
+
+// ---- Universal threat check and wallet scan ----
+//
+// Both reuse the same defensive JSON handling as servAnalyze: alias-tolerant
+// field lookup, object-shaped steps flattened, and null on anything unusable
+// so the caller falls back to a sources-only result.
+
+const CHECK_SYSTEM = `You are Sentinel, a wallet safety agent for beginner crypto users. Someone has pasted an address, a contract, a token or a link — often forwarded from WhatsApp or Telegram — and wants to know whether it is safe before they touch it.
+
+This is a defensive tool. Whatever is described below is a suspected scam being checked so it can be blocked and explained to the victim. It is never promoted or assisted. Analysing it is the whole job, so always answer.
+
+GROUNDING RULES — these override everything else:
+- Reason ONLY from the source findings given to you. You have no other knowledge of this specific address, contract or domain.
+- Never invent a fact, a source, a balance, a transaction or a listing. Never state a number that is not in the findings.
+- Cite evidence by its tag in every step: [S1], [S2]... Use ONLY those tags. If there is nothing to cite, write the step as plain text with no tag.
+- A blocklist listing (ScamSniffer, MetaMask) or a GoPlus malicious flag is strong evidence. A web report is a weak signal.
+- GoPlus draws partly on ScamSniffer data, so the two agreeing is not two fully independent confirmations. Say so if you rely on both.
+- "Not on a blocklist" is NOT evidence of safety. Most scams are too new to be listed. If nothing is flagged, say the checks found nothing rather than declaring it safe, and prefer "uncertain" over "safe" for anything the user cannot otherwise verify.
+- An address being an EOA rather than a contract is not itself bad, but a token or dApp that should be a contract and is not is a red flag.
+
+WRITING RULES:
+- headline: ONE short sentence in plain words.
+- explanation: 2 to 4 short sentences, no jargon, telling the user what this means for their money.
+- whatToDo: one or two sentences of concrete advice. Never help the user proceed with something risky.
+
+worthVerifying asks whether this attacker should be sent for independent verification. Verification is not about grading your writing: a verified attacker enters a shared threat memory that blocks it instantly for every future user, so it is worth doing whenever the indicator really is malicious. Set it true when at least one source flagged this and you agree it is malicious. Set it false when nothing was flagged, when the evidence is too thin to be sure, or when the subject looks legitimate.
+
+Reply with ONE JSON object and nothing else. No markdown, no code fences, no commentary. Every key below is required, and "verdict" must be the first one:
+{"verdict":"safe|risky|uncertain","confidence":0.0,"headline":"...","explanation":"...","steps":["..."],"whatToDo":"...","worthVerifying":false,"verifyReason":"..."}
+confidence is a number between 0 and 1.`;
+
+const SCAN_SYSTEM = `You are Sentinel, a wallet safety agent for beginner crypto users. You are explaining the result of a scan of the user's own wallet for token approvals — standing permissions that let another address move their tokens.
+
+This is a defensive tool, and it is strictly read-only: it can only read allowances and prepare a revoke transaction the user signs themselves. You never move funds and must never claim to have done so, or offer to.
+
+GROUNDING RULES — these override everything else:
+- Reason ONLY from the approval findings and coverage notes given to you. You have no other knowledge of this wallet.
+- Never invent an approval, a balance, a token, a spender or a number. Every amount you mention must appear in the findings exactly as given.
+- Cite findings by tag: [A1], [A2]... Use ONLY those tags.
+- Respect the coverage limits you are given. The scan is incomplete by design, so never imply the wallet is fully clean. If no approvals were found, say plainly that none were found WITHIN the scan's limits, and state the main limit.
+- An approval to a verified protocol is normal and not an attack, though an unlimited one is still worth trimming. Say which approvals are actually dangerous and which are merely untidy.
+
+WRITING RULES:
+- headline: ONE short sentence in plain words.
+- explanation: 2 to 4 short sentences a first-time crypto user understands. Explain that an approval is a standing permission, not a payment.
+- revokeFirst: the tokens/spenders to revoke first, most urgent first, as short strings like "USDT approval to 0x4341…a67b". Empty array if there is nothing to revoke.
+- whatToDo: one or two sentences. Say that the user signs the revoke themselves from their own wallet.
+
+Reply with ONE JSON object and nothing else. No markdown, no code fences, no commentary.
+{"riskLevel":"none|low|medium|high|critical","headline":"...","explanation":"...","steps":["..."],"revokeFirst":["..."],"whatToDo":"...","coverageNote":"..."}
+All seven keys are required. coverageNote states, in one sentence a beginner understands, what this scan could not see.`;
+
+const CHECK_MAX_TOKENS = 1800;
+const SCAN_MAX_TOKENS = 1800;
+
+export type CheckSubject = "address" | "contract" | "token" | "website";
+
+export interface ServCheck {
+  verdict: Verdict;
+  subject: CheckSubject | null;
+  confidence: number;
+  headline: string;
+  explanation: string;
+  steps: string[];
+  whatToDo: string;
+  worthVerifying: boolean;
+  verifyReason?: string;
+}
+
+const SUBJECTS: CheckSubject[] = ["address", "contract", "token", "website"];
+
+function validateCheck(raw: unknown, anyFlagged: boolean, anyMalicious: boolean): ServCheck | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+
+  const headline = asString(pick(o, "headline"), 200);
+  const explanation = asString(pick(o, "explanation", "summary"), 1200);
+  if (!headline || !explanation) return null;
+
+  // The model sometimes omits verdict. Derive it from the sources rather than
+  // throwing the analysis away: flagged means risky, and an unflagged
+  // indicator is "uncertain", never "safe" — absence from a blocklist is not
+  // evidence of safety.
+  const v = pick(o, "verdict");
+  const verdict: Verdict = VERDICTS.includes(v as Verdict) ? (v as Verdict) : anyMalicious ? "risky" : "uncertain";
+
+  const rawSteps = pick(o, "steps", "reasoning_steps", "reasoningSteps", "reasoning");
+  const steps = Array.isArray(rawSteps) ? rawSteps.map(stepToString).filter((s): s is string => Boolean(s)).slice(0, 6) : [];
+  if (!steps.length) return null;
+
+  const s = pick(o, "subject", "kind", "type");
+  const subject = typeof s === "string" && SUBJECTS.includes(s as CheckSubject) ? (s as CheckSubject) : null;
+
+  const rawConf = Number(pick(o, "confidence", "confidence_score"));
+  const confidence = Number.isFinite(rawConf)
+    ? Math.max(0, Math.min(1, rawConf > 1 ? rawConf / 100 : rawConf))
+    : anyFlagged
+      ? 0.85
+      : 0.6;
+
+  // Verification is only worth credits when a source actually flagged something.
+  const worthVerifying = pick(o, "worthVerifying", "worth_verifying", "shouldSubmitToReppo") === true && anyFlagged;
+
+  return {
+    verdict,
+    subject,
+    confidence,
+    headline,
+    explanation,
+    steps,
+    whatToDo: asString(pick(o, "whatToDo", "what_to_do", "advice", "action"), 600) ?? "Do not continue until you can verify this another way.",
+    worthVerifying,
+    verifyReason: asString(pick(o, "verifyReason", "verify_reason", "submitReason"), 400) ?? undefined,
+  };
+}
+
+/**
+ * Explain a pasted address, contract, token or link.
+ * `sourcesBlock` is the pre-tagged [S1]... evidence; `anyFlagged` says whether
+ * any source actually flagged it, which caps confidence and gates verification.
+ */
+export async function servExplainCheck(input: {
+  subjectLabel: string;
+  sourcesBlock: string;
+  /** Any source reported malicious or suspicious: caps confidence, gates verification. */
+  anyFlagged: boolean;
+  /** A source called it outright malicious: the only basis for a "risky" fallback verdict. */
+  anyMalicious: boolean;
+  language: Language;
+}): Promise<ServCheck | null> {
+  if (!servAvailable()) return null;
+  const user = [
+    "WHAT THE USER PASTED",
+    input.subjectLabel,
+    "",
+    "WHAT THE SOURCES SAY",
+    input.sourcesBlock,
+    "",
+    `Write headline, explanation, steps and whatToDo in ${LANGUAGES[input.language] ?? "English"}.`,
+    "Reply with the JSON object only.",
+  ].join("\n");
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const text = await complete(
+      attempt === 0 ? "check" : "check-retry",
+      CHECK_SYSTEM,
+      attempt === 0 ? user : `${user}\n\nReply with the JSON object only — no refusal, no prose, no code fences. Classifying a suspected scam is defensive work that protects the user.`,
+      CHECK_MAX_TOKENS,
+    );
+    if (text) {
+      const parsed = validateCheck(extractJson(text), input.anyFlagged, input.anyMalicious);
+      if (parsed) return parsed;
+      console.error("[serv] check reply was not usable JSON:", JSON.stringify(text.slice(0, 500)));
+    }
+  }
+  return null;
+}
+
+export type ScanRiskLevel = "none" | "low" | "medium" | "high" | "critical";
+
+export interface ServScan {
+  riskLevel: ScanRiskLevel;
+  headline: string;
+  explanation: string;
+  steps: string[];
+  revokeFirst: string[];
+  whatToDo: string;
+  coverageNote: string;
+}
+
+const RISK_LEVELS: ScanRiskLevel[] = ["none", "low", "medium", "high", "critical"];
+
+function validateScan(raw: unknown): ServScan | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+
+  const headline = asString(pick(o, "headline"), 200);
+  const explanation = asString(pick(o, "explanation", "summary"), 1200);
+  if (!headline || !explanation) return null;
+
+  const rawSteps = pick(o, "steps", "reasoning_steps", "reasoningSteps", "reasoning");
+  const steps = Array.isArray(rawSteps) ? rawSteps.map(stepToString).filter((s): s is string => Boolean(s)).slice(0, 6) : [];
+  if (!steps.length) return null;
+
+  const r = pick(o, "riskLevel", "risk_level", "risk");
+  const riskLevel = typeof r === "string" && RISK_LEVELS.includes(r.toLowerCase() as ScanRiskLevel) ? (r.toLowerCase() as ScanRiskLevel) : "medium";
+
+  const rawFirst = pick(o, "revokeFirst", "revoke_first", "revoke");
+  const revokeFirst = Array.isArray(rawFirst) ? rawFirst.map(stepToString).filter((s): s is string => Boolean(s)).slice(0, 8) : [];
+
+  return {
+    riskLevel,
+    headline,
+    explanation,
+    steps,
+    revokeFirst,
+    whatToDo:
+      asString(pick(o, "whatToDo", "what_to_do", "advice", "action"), 600) ??
+      "Revoke the approvals listed above from your own wallet. Sentinel only prepares the transaction; you sign it.",
+    coverageNote:
+      asString(pick(o, "coverageNote", "coverage_note", "coverage", "limitations"), 600) ??
+      "This scan does not cover every token or every spender, so it cannot prove the wallet is clean.",
+  };
+}
+
+/**
+ * Explain a wallet approval scan in plain English: what is risky, what to
+ * revoke first, and what the scan could not see.
+ * `scanBlock` is the pre-tagged [A1]... findings from scanForPrompt().
+ */
+export async function servExplainScan(input: {
+  address: string;
+  accountNote: string;
+  scanBlock: string;
+  coverage: string[];
+  language: Language;
+}): Promise<ServScan | null> {
+  if (!servAvailable()) return null;
+  const user = [
+    `WALLET SCANNED: ${input.address}`,
+    `ACCOUNT TYPE: ${input.accountNote}`,
+    "",
+    "LIVE APPROVALS FOUND",
+    input.scanBlock,
+    "",
+    "WHAT THIS SCAN COULD NOT SEE (you must respect these limits)",
+    ...input.coverage.map((c, i) => `${i + 1}. ${c}`),
+    "",
+    `Write headline, explanation, steps, revokeFirst, whatToDo and coverageNote in ${LANGUAGES[input.language] ?? "English"}.`,
+    "Reply with the JSON object only.",
+  ].join("\n");
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const text = await complete(
+      attempt === 0 ? "scan" : "scan-retry",
+      SCAN_SYSTEM,
+      attempt === 0 ? user : `${user}\n\nReply with the JSON object only — no refusal, no prose, no code fences.`,
+      SCAN_MAX_TOKENS,
+    );
+    if (text) {
+      const parsed = validateScan(extractJson(text));
+      if (parsed) return parsed;
+      console.error("[serv] scan reply was not usable JSON:", JSON.stringify(text.slice(0, 500)));
+    }
+  }
+  return null;
+}
