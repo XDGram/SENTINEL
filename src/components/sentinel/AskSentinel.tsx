@@ -6,6 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import type { Analysis, WalletAction } from "@/lib/types";
 import { api, ApiError } from "@/lib/client/api";
 import { cn } from "@/lib/cn";
+import { ListenButton, MicButton, MuteToggle } from "@/components/voice";
+import { composeAnswerSpeech } from "@/lib/speech-text";
 
 const SUGGESTIONS = ["Is it safe if I only sign and don't send money?", "How do I know the real address?", "What should I do now?"];
 
@@ -26,7 +28,10 @@ export function AskSentinel({ action, analysis, dark }: { action: WalletAction; 
 
   return (
     <section>
-      <h4 className={cn("label-mono mb-3", dark ? "text-white/45" : "text-ink-soft")}>Ask Watchdog</h4>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h4 className={cn("label-mono", dark ? "text-white/45" : "text-ink-soft")}>Ask Watchdog</h4>
+        <MuteToggle dark={dark} />
+      </div>
       <div className="space-y-3">
         {thread.map((m, i) => (
           <div key={i} className="space-y-2 text-sm">
@@ -35,7 +40,10 @@ export function AskSentinel({ action, analysis, dark }: { action: WalletAction; 
             </p>
             <p className={cn("max-w-[92%] rounded-2xl rounded-bl-sm px-3 py-2 leading-6", dark ? "bg-white/[0.04] text-white/85" : "bg-white text-ink")}>
               {m.a}
-              {m.serv && <span className={cn("label-mono mt-1 block", dark ? "text-white/35" : "text-ink-soft")}>SERV Reasoning</span>}
+              <span className="mt-2 flex flex-wrap items-center gap-2">
+                {m.serv && <span className={cn("label-mono", dark ? "text-white/35" : "text-ink-soft")}>SERV Reasoning</span>}
+                <ListenButton text={composeAnswerSpeech(m.a)} id={`ask-${i}`} source="answer" dark={dark} />
+              </span>
             </p>
           </div>
         ))}
@@ -74,6 +82,7 @@ export function AskSentinel({ action, analysis, dark }: { action: WalletAction; 
             placeholder="Ask a follow-up question…"
             className={cn("min-w-0 flex-1 bg-transparent text-sm outline-none", dark ? "text-white placeholder:text-white/35" : "placeholder:text-ink-soft/70")}
           />
+          <MicButton onTranscript={setQ} onSubmit={send} dark={dark} />
           <button
             type="submit"
             disabled={!q.trim() || ask.isPending}

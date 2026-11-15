@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useFeed } from "@/lib/client/hooks";
+import { MuteToggle } from "@/components/voice";
 import { CtaLink } from "@/components/ui/elements";
 import { Logo } from "./Logo";
 
@@ -81,6 +82,9 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Watchdog reads a paused transaction out loud, so turning that off
+              has to be reachable from anywhere, not just from a result card. */}
+          <MuteToggle className="h-9 w-9 bg-white/85" />
           <CtaLink href="/demo" className="hidden h-11 sm:inline-flex">
             Try the demo
           </CtaLink>

@@ -5,6 +5,8 @@ import { motion } from "motion/react";
 import type { Verdict } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { Pill } from "@/components/ui";
+import { ListenButton, useAutoSpeak } from "@/components/voice";
+import { composeVerdictSpeech } from "@/lib/speech-text";
 
 export const VERDICT_META: Record<Verdict, { label: string; icon: typeof ShieldCheck; text: string; bg: string; ring: string; solid: string }> = {
   safe: { label: "Looks safe", icon: ShieldCheck, text: "text-safe", bg: "bg-safe/10", ring: "ring-safe/30", solid: "bg-safe" },
@@ -34,6 +36,7 @@ export function VerdictHeader({
   confidence,
   meta,
   dark,
+  autoSpeak,
 }: {
   verdict: Verdict;
   headline: string;
@@ -41,9 +44,16 @@ export function VerdictHeader({
   confidence?: number;
   meta?: React.ReactNode;
   dark?: boolean;
+  /** Read the verdict out loud on arrival. On by default unless it is safe. */
+  autoSpeak?: boolean;
 }) {
   const m = VERDICT_META[verdict];
   const Icon = m.icon;
+  // Spoken through the same rules the server uses, so the voice says exactly
+  // what is on screen.
+  const spoken = composeVerdictSpeech({ headline, explanation });
+  // Only the moment a transaction is paused interrupts; a safe result does not.
+  useAutoSpeak(spoken, (autoSpeak ?? verdict !== "safe") && Boolean(spoken), { id: spoken });
   return (
     <div className="flex gap-4">
       <motion.div
@@ -63,6 +73,7 @@ export function VerdictHeader({
             </span>
           )}
           {meta}
+          <ListenButton text={spoken} id={spoken} source="verdict" dark={dark} />
         </div>
         <h3 className={cn("mt-2 text-xl leading-snug font-medium tracking-tight sm:text-2xl", dark ? "text-white" : "text-ink")}>
           {plain(headline)}
