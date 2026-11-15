@@ -20,6 +20,9 @@ export interface VoiceApi {
   activeId: string | null;
   /** True once a clip could not autoplay: the user has to press Listen. */
   needsGesture: boolean;
+  /** Draws the eye to the mute control while the intro is naming it. */
+  muteHighlight: boolean;
+  setMuteHighlight: (v: boolean) => void;
   speak: (text: string, opts?: { id?: string; source?: string; auto?: boolean }) => Promise<void>;
   stop: () => void;
 }
@@ -43,6 +46,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<VoiceState>("idle");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [needsGesture, setNeedsGesture] = useState(false);
+  const [muteHighlight, setMuteHighlight] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Guards double-speaking when React re-renders a result.
@@ -190,8 +194,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<VoiceApi>(
-    () => ({ muted, setMuted, state, activeId, needsGesture, speak, stop }),
-    [muted, setMuted, state, activeId, needsGesture, speak, stop],
+    () => ({ muted, setMuted, state, activeId, needsGesture, muteHighlight, setMuteHighlight, speak, stop }),
+    [muted, setMuted, state, activeId, needsGesture, muteHighlight, speak, stop],
   );
 
   return <VoiceContext.Provider value={value}>{children}</VoiceContext.Provider>;

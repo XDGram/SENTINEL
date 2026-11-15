@@ -83,11 +83,20 @@ export function MuteToggle({ dark, className }: { dark?: boolean; className?: st
       aria-label={voice.muted ? "Turn Watchdog's voice on" : "Turn Watchdog's voice off"}
       title={voice.muted ? "Voice off" : "Voice on"}
       className={cn(
-        "grid h-7 w-7 place-items-center rounded-full border transition-colors",
+        "relative grid h-7 w-7 place-items-center rounded-full border transition-colors",
         dark ? "border-line-dark text-white/55 hover:bg-white/10" : "border-line text-ink-soft hover:bg-black/[0.04]",
+        // While the introduction names this control, draw the eye to it.
+        voice.muteHighlight && "border-ink text-ink",
         className,
       )}
     >
+      {voice.muteHighlight && (
+        <span
+          className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-ink"
+          style={{ animation: "watchdog-pulse 1.4s ease-out infinite" }}
+          aria-hidden
+        />
+      )}
       {voice.muted ? <VolumeX className="h-3.5 w-3.5" aria-hidden /> : <Volume2 className="h-3.5 w-3.5" aria-hidden />}
     </button>
   );

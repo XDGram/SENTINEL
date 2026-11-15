@@ -8,10 +8,12 @@ import { Threats } from "@/components/home/Threats";
 import { HowItWorksStory } from "@/components/home/HowItWorksStory";
 import { LearningLoop } from "@/components/home/LearningLoop";
 import { ProofStrip } from "@/components/home/ProofStrip";
+import { Intro } from "@/components/voice";
 
 export default function Home() {
   return (
     <main>
+      <Intro />
       {/* Hero */}
       <section className="pt-16 pb-14 sm:pt-24">
         {/* Centred, both lines the same weight and colour: the tagline reads as
