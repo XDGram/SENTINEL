@@ -3,7 +3,6 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-serif: "Fraunces Variable", ui-serif, Georgia, "Times New Roman", serif;
 
   --color-canvas: #fafafa;
   --color-surface: #ffffff;
@@ -55,12 +54,15 @@ body {
   border-radius: 6px;
 }
 
+/* Display type is Geist Bold: the same family as the body and the mono labels,
+   so the headline belongs to the page instead of contrasting with it. Always
+   upright, never italic. Tracking is pulled in because large sizes need less
+   letter spacing than body text. */
 .font-display {
-  font-family: var(--font-serif);
-  font-weight: 300;
-  font-optical-sizing: auto;
-  font-variation-settings: "SOFT" 30, "WONK" 0;
-  letter-spacing: -0.02em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: -0.035em;
 }
 
 .label-mono {

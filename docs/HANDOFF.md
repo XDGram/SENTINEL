@@ -17,7 +17,8 @@ Deadline: **Nov 15 2026, 23:59 UTC**. Target submission ~22:00 UTC.
 
 ## Design rules the owner insisted on
 - **Black and white** UI (white/off-white canvas, true black, neutral greys); colour only for meaning (red danger, amber caution, green safe). Keep it monochrome.
-- Display font **Fraunces** (light), body Geist. Background: fine drifting dot grid.
+- One typeface throughout: **Geist**. Display headlines are Geist Bold (700, tracking -0.035em, always upright); body and mono labels are Geist too. Background: fine drifting dot grid.
+- **No italics.** Display and body type stay upright everywhere.
 - Use **Uiverse.io (MIT) elements** where possible, restyled; credit in README.
 - Ambient motion always plays (owner's device uses reduced motion).
 - Demo wallets look **Phantom-style** but never use Phantom's name/logo.

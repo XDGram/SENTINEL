@@ -18,7 +18,7 @@ The single source of truth for the UI. Both build sessions follow it exactly.
 - **Icons:** **lucide-react**.
 - **Fonts:** self-hosted via npm, so builds never fetch from the network:
   - `geist` (Geist Sans + Geist Mono) for body and mono
-  - `@fontsource/instrument-serif` for display headlines
+  - no separate display family: headlines are `geist` at 700 with tighter tracking, always upright (never italic)
 - **Particle band:** a typed React component on `<canvas>` 2D (requestAnimationFrame, devicePixelRatio aware, pauses offscreen and on reduced motion).
 - **Typing:** every API response comes from `src/lib/types.ts` or the route's exported types. No `any`.
 

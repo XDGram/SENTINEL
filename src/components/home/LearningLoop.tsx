@@ -69,7 +69,7 @@ export function LearningLoop() {
       <div className="absolute inset-0 grid place-items-center text-center">
         <div>
           <p className="font-display text-2xl leading-tight text-white">Learns once.</p>
-          <p className="font-display text-2xl leading-tight text-white/50 italic">Protects everyone.</p>
+          <p className="font-display text-2xl leading-tight text-white/50">Protects everyone.</p>
         </div>
       </div>
 

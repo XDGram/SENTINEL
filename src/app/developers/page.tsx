@@ -59,7 +59,7 @@ export default function DevelopersPage() {
         <MonoLabel className="text-white/45">[N.01] &gt; Threat intelligence API</MonoLabel>
         <div className="mt-4 grid gap-8 lg:grid-cols-[1.3fr_1fr] lg:items-end">
           <h1 className="font-display text-[40px] leading-[1.05] sm:text-[56px]">
-            Plug verified threat intelligence <span className="italic text-white/70">into your wallet.</span>
+            Plug verified threat intelligence <span className="text-white/70">into your wallet.</span>
           </h1>
           <div>
             <p className="text-sm leading-6 text-white/65">

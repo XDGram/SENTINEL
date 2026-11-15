@@ -214,4 +214,4 @@ Watchdog is **free for users**. Wallets, exchanges and dApps pay for:
 UI elements adapted from [Uiverse.io](https://uiverse.io) (MIT License) and restyled for Watchdog:
 glider tabs by Pradeepsaranbishnoi, arrow and expanding-circle buttons by alexmaracinaru,
 expanding round button by vinodjangid07, ring pulse loader by Li-Deheng, sliding bar loader by
-shadowmurphy, rotating glow input by vikas7754. Display type: Fraunces; text: Geist.
+shadowmurphy, rotating glow input by vikas7754. Type: Geist throughout, bold for display.

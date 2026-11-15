@@ -195,7 +195,7 @@ export function DemoClient() {
         <div>
           <MonoLabel className="text-ink-soft">Live demo · simulated wallets, real data</MonoLabel>
           <h1 className="font-display mt-3 text-[40px] leading-[1.05] sm:text-[56px]">
-            Two wallets. <span className="italic text-ink/75">One shared memory.</span>
+            Two wallets. <span className="text-ink/75">One shared memory.</span>
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">

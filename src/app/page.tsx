@@ -14,18 +14,21 @@ export default function Home() {
     <main>
       {/* Hero */}
       <section className="pt-16 pb-14 sm:pt-24">
+        {/* Centred, both lines the same weight and colour: the tagline reads as
+            one statement, with the eyebrow, headline, sub-line and input box
+            sharing a single axis down the middle. */}
         <Container className="text-center">
           <MonoLabel className="text-ink-soft">Wallet safety agent · SERV Reasoning × Reppo</MonoLabel>
-          <h1 className="font-display mx-auto mt-5 max-w-3xl text-[44px] leading-[1.04] text-ink sm:text-[68px]">
+          <h1 className="font-display mx-auto mt-6 max-w-4xl text-[42px] leading-[1.06] text-ink sm:text-[72px]">
             <WordsReveal text="Spots a scam once." />
             <br />
-            <WordsReveal text="Stops it for everyone." className="text-ink/75" delay={0.35} />
+            <WordsReveal text="Stops it for everyone." delay={0.35} />
           </h1>
           <Reveal delay={0.7}>
-          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-ink-soft">
-            Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every
-            attacker it has already seen.
-          </p>
+            <p className="mx-auto mt-6 max-w-[52ch] text-[15px] leading-6 text-ink-soft">
+              Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every
+              attacker it has already seen.
+            </p>
           </Reveal>
           <div className="mt-10 text-left">
             <AskBox />
@@ -44,7 +47,7 @@ export default function Home() {
               <h2 className="font-display mt-4 text-[40px] leading-[1.05] sm:text-[56px]">
                 Most wallets aren&apos;t hacked.
                 <br />
-                <span className="text-white/55 italic">They&apos;re tricked.</span>
+                <span className="text-white/55">They&apos;re tricked.</span>
               </h2>
             </div>
             <p className="text-[15px] leading-7 text-white/65">
@@ -67,7 +70,7 @@ export default function Home() {
           <Reveal className="mb-12 max-w-2xl">
             <MonoLabel className="text-ink-soft">[N.02] &gt; How it works</MonoLabel>
             <h2 className="font-display mt-4 text-[40px] leading-[1.05] text-ink sm:text-[56px]">
-              Five seconds between you <span className="text-ink/60 italic">and a drained wallet.</span>
+              Five seconds between you <span className="text-ink/60">and a drained wallet.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
@@ -86,7 +89,7 @@ export default function Home() {
             <Reveal delay={0.15}>
               <MonoLabel className="text-white/40">[N.03] &gt; Proof of learning</MonoLabel>
               <h2 className="font-display mt-4 text-[40px] leading-[1.05] sm:text-[52px]">
-                It learns from the first attack <span className="text-white/55 italic">and protects the next person.</span>
+                It learns from the first attack <span className="text-white/55">and protects the next person.</span>
               </h2>
               <p className="mt-5 max-w-lg text-[15px] leading-7 text-white/65">
                 New attackers are sent to Reppo&apos;s independent evaluators. Nothing is trusted until Reppo accepts it. Once
