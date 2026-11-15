@@ -1,3 +1,5 @@
+"use client";
+
 import { Container, MonoLabel } from "@/components/ui";
 import { Reveal, WordsReveal } from "@/components/ui/Reveal";
 import { ArrowLink, CtaLink } from "@/components/ui/elements";
@@ -10,8 +12,10 @@ import { LearningLoop } from "@/components/home/LearningLoop";
 import { ProofStrip } from "@/components/home/ProofStrip";
 import { PageIntro } from "@/components/voice";
 import { LanguageInvite } from "@/components/site/LanguageInvite";
+import { useT } from "@/lib/client/useT";
 
 export default function Home() {
+  const tr = useT();
   return (
     <main>
       <LanguageInvite />
@@ -21,16 +25,15 @@ export default function Home() {
             one statement, with the eyebrow, headline, sub-line and input box
             sharing a single axis down the middle. */}
         <Container className="text-center">
-          <MonoLabel className="text-ink-soft">Wallet safety agent · SERV Reasoning × Reppo</MonoLabel>
+          <MonoLabel className="text-ink-soft">{tr("hero.eyebrow")}</MonoLabel>
           <h1 className="font-display mx-auto mt-6 max-w-4xl text-[42px] leading-[1.06] text-ink sm:text-[72px]">
-            <WordsReveal text="Spots a scam once." />
+            <WordsReveal key={tr("hero.line1")} text={tr("hero.line1")} />
             <br />
-            <WordsReveal text="Stops it for everyone." delay={0.35} />
+            <WordsReveal key={tr("hero.line2")} text={tr("hero.line2")} delay={0.35} />
           </h1>
           <Reveal delay={0.7}>
             <p className="mx-auto mt-6 max-w-[52ch] text-[15px] leading-6 text-ink-soft">
-              Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every
-              attacker it has already seen.
+              {tr("hero.sub")}
             </p>
           </Reveal>
           {/* The press that lets the browser play audio at all. Sits in the

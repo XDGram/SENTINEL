@@ -6,19 +6,23 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useT } from "@/lib/client/useT";
+import type { CopyKey } from "@/lib/i18n";
 import { CheckResult, WalletScanReport } from "@/components/sentinel";
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 
 type Job = { kind: "check"; input: string } | { kind: "scan"; address: string };
 
-const EXAMPLES: { label: string; job: Job }[] = [
+// A domain is the same in every language; the descriptions are not.
+const EXAMPLES: { label?: string; key?: CopyKey; job: Job }[] = [
   { label: "uniswap.lc", job: { kind: "check", input: "uniswap.lc" } },
-  { label: "a drainer address", job: { kind: "check", input: "0x43412801d29861ecc4c4d86e5becfd16af86a67b" } },
-  { label: "Vitalik's wallet", job: { kind: "scan", address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" } },
+  { key: "ask.drainer", job: { kind: "check", input: "0x43412801d29861ecc4c4d86e5becfd16af86a67b" } },
+  { key: "ask.vitalik", job: { kind: "scan", address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" } },
 ];
 
 export function AskBox() {
+  const tr = useT();
   const [text, setText] = useState("");
   const [mode, setMode] = useState<"auto" | "scan" | "check">("auto");
   const [choose, setChoose] = useState<string | null>(null);
@@ -48,7 +52,7 @@ export function AskBox() {
       ? "Paste your wallet address (0x…) to scan its approvals"
       : mode === "check"
         ? "Paste a suspicious link, address or message…"
-        : "Paste a wallet address, contract, or a suspicious link…";
+        : tr("ask.placeholder");
 
   return (
     <div id="check" className="scroll-mt-24">
@@ -81,16 +85,16 @@ export function AskBox() {
         <div className="mt-3 flex items-center gap-2">
           <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none]">
             <Chip active={mode === "scan"} onClick={() => setMode(mode === "scan" ? "auto" : "scan")} icon={<Wallet className="h-3.5 w-3.5" />}>
-              Scan my wallet
+              {tr("ask.scan")}
             </Chip>
             <Chip active={mode === "check"} onClick={() => setMode(mode === "check" ? "auto" : "check")} icon={<Link2 className="h-3.5 w-3.5" />}>
-              Check a link
+              {tr("ask.checkLink")}
             </Chip>
             <Link
               href="/demo"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
             >
-              <Sparkles className="h-3.5 w-3.5" /> Try the demo
+              <Sparkles className="h-3.5 w-3.5" /> {tr("ask.tryDemo")}
             </Link>
           </div>
           <SendButton onClick={submit} label="Ask Watchdog" />
@@ -115,17 +119,17 @@ export function AskBox() {
       </motion.div>
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-soft">
-        <span>Try:</span>
+        <span>{tr("ask.try")}</span>
         {EXAMPLES.map((e) => (
           <button
-            key={e.label}
+            key={e.key ?? e.label}
             className="underline decoration-ink-soft/30 underline-offset-4 hover:text-ink hover:decoration-ink"
             onClick={() => {
               setText(e.job.kind === "scan" ? e.job.address : e.job.input);
               run(e.job);
             }}
           >
-            {e.label}
+            {e.key ? tr(e.key) : e.label}
           </button>
         ))}
       </div>

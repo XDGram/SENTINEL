@@ -12,20 +12,22 @@ import { cn } from "@/lib/cn";
 import { useFeed } from "@/lib/client/hooks";
 import { MuteToggle } from "@/components/voice";
 import { LanguageSwitch } from "./LanguageSwitch";
+import { useT } from "@/lib/client/useT";
 import { CtaLink } from "@/components/ui/elements";
 import { Logo } from "./Logo";
 
 const LINKS = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/", label: "Check" },
-  { href: "/demo", label: "Demo" },
-  { href: "/memory", label: "Threat memory", badge: true },
-  { href: "/developers", label: "Developers" },
+  { href: "/dashboard", label: "nav.dashboard" as const },
+  { href: "/", label: "nav.check" as const },
+  { href: "/demo", label: "nav.demo" as const },
+  { href: "/memory", label: "nav.memory" as const, badge: true },
+  { href: "/developers", label: "nav.developers" as const },
 ];
 
 export function Nav() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const tr = useT();
   const feed = useFeed();
   const verified = feed.data?.count;
   const active = LINKS.find((l) => (l.href === "/" ? path === "/" : path.startsWith(l.href)))?.href;
@@ -65,7 +67,7 @@ export function Nav() {
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
                   />
                 )}
-                <span className="relative">{l.label}</span>
+                <span className="relative">{tr(l.label)}</span>
                 {l.badge && verified != null && (
                   <span
                     className={cn(
@@ -88,7 +90,7 @@ export function Nav() {
           <LanguageSwitch className="hidden sm:flex" />
           <MuteToggle className="h-9 w-9 bg-white/85" />
           <CtaLink href="/demo" className="hidden h-11 sm:inline-flex">
-            Try the demo
+            {tr("nav.tryDemo")}
           </CtaLink>
           <button
             className="grid h-11 w-11 place-items-center rounded-full bg-white/85 shadow-[0_0_1px_rgb(30_42_40/.2),0_6px_16px_-6px_rgb(30_42_40/.25)] md:hidden"
@@ -109,7 +111,7 @@ export function Nav() {
               onClick={() => setOpen(false)}
               className={cn("flex items-center justify-between rounded-2xl px-4 py-3 text-sm", active === l.href ? "bg-canvas text-ink" : "text-ink-soft")}
             >
-              {l.label}
+              {tr(l.label)}
               {l.badge && verified != null && <span className="rounded-full bg-ink/10 px-2 font-mono text-[11px] text-ink">{verified}</span>}
             </Link>
           ))}

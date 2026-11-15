@@ -15,6 +15,7 @@ import { PhoneWallet, type PhoneState } from "./PhoneWallet";
 import { AnalysisPanel, type PanelState } from "./AnalysisPanel";
 import { PageIntro } from "@/components/voice";
 import { getLanguage, setLanguage as setGlobalLanguage, subscribeLanguage } from "@/lib/client/language";
+import { useT } from "@/lib/client/useT";
 
 type Id = "A" | "B";
 
@@ -200,6 +201,7 @@ export function DemoClient() {
     qc.invalidateQueries({ queryKey: ["threats"] });
   }, [qc, toast]);
 
+  const tr = useT();
   const h = health.data;
 
   // Switching language re-runs the same action, so the explanation, the
@@ -215,9 +217,9 @@ export function DemoClient() {
     <div>
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <MonoLabel className="text-ink-soft">Live demo · simulated wallets, real data</MonoLabel>
+          <MonoLabel className="text-ink-soft">{tr("demo.eyebrow")}</MonoLabel>
           <h1 className="font-display mt-3 text-[40px] leading-[1.05] sm:text-[56px]">
-            Two wallets. <span className="text-ink/75">One shared memory.</span>
+            {tr("demo.line1")} <span className="text-ink/75">{tr("demo.line2")}</span>
           </h1>
           {/* Spoken walkthrough: what is simulated, what is real, and how SERV
               and Reppo turn one person's close call into everyone's block. */}
@@ -233,7 +235,7 @@ export function DemoClient() {
           <Live ok={h?.reppo} label="Reppo" />
           <Live ok={h ? h.store === "supabase" : undefined} label="Threat memory" />
           <button onClick={reset} className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-full border border-line px-3 text-xs text-ink-soft hover:bg-black/5">
-            <RotateCcw className="h-3.5 w-3.5" /> Reset demo
+            <RotateCcw className="h-3.5 w-3.5" /> {tr("demo.reset")}
           </button>
         </div>
       </div>

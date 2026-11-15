@@ -8,8 +8,6 @@
 
 import type { Language } from "@/lib/types";
 
-const KEY = "watchdog:language";
-
 /** Only languages SERV has actually been exercised in are offered. */
 export const SUPPORTED_LANGUAGES: { code: Language; label: string; full: string }[] = [
   { code: "en", label: "EN", full: "English" },
@@ -22,14 +20,12 @@ const isSupported = (v: unknown): v is Language => SUPPORTED_LANGUAGES.some((l) 
 let current: Language = "en";
 const listeners = new Set<(l: Language) => void>();
 
-/** Read the stored choice once, on the client. */
+/**
+ * Every visit starts in English, so the site always opens in a language the
+ * owner can read and the picker always agrees with what is on screen. The
+ * choice lasts for the visit, not beyond it.
+ */
 export function initLanguage(): Language {
-  try {
-    const stored = window.localStorage.getItem(KEY);
-    if (isSupported(stored)) current = stored;
-  } catch {
-    // Blocked storage just means the choice lasts for this page only.
-  }
   return current;
 }
 
@@ -40,11 +36,6 @@ export function getLanguage(): Language {
 export function setLanguage(next: Language) {
   if (!isSupported(next) || next === current) return;
   current = next;
-  try {
-    window.localStorage.setItem(KEY, next);
-  } catch {
-    // Not essential.
-  }
   for (const fn of listeners) fn(next);
 }
 
