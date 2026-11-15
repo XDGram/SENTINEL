@@ -245,7 +245,7 @@ function buildPacket(p: CheckPayload): string {
       onChain: p.account ?? null,
       ruleEngine: p.brandImpersonated ? { brandImpersonation: p.brandImpersonated } : null,
       tokenSecurity: p.tokenInfo ?? null,
-      sentinelAnalysis: p.check
+      watchdogAnalysis: p.check
         ? {
             verdict: p.check.verdict,
             confidence: p.check.confidence,

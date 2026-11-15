@@ -25,7 +25,7 @@ import { useState } from "react";
 import type { Analysis, Wallet, WalletAction } from "@/lib/types";
 import type { Scenario } from "@/lib/sim-data";
 import { cn, shortAddr } from "@/lib/cn";
-import { plain } from "@/components/sentinel";
+import { plain } from "@/components/watchdog";
 import { RingsLoader } from "@/components/ui/elements";
 
 export type PhoneState =

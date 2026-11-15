@@ -11,7 +11,7 @@ import { composeAnswerSpeech } from "@/lib/speech-text";
 
 const SUGGESTIONS = ["Is it safe if I only sign and don't send money?", "How do I know the real address?", "What should I do now?"];
 
-export function AskSentinel({ action, analysis, dark }: { action: WalletAction; analysis: Analysis; dark?: boolean }) {
+export function AskWatchdog({ action, analysis, dark }: { action: WalletAction; analysis: Analysis; dark?: boolean }) {
   const [q, setQ] = useState("");
   const [thread, setThread] = useState<{ q: string; a: string; serv: boolean }[]>([]);
   const ask = useMutation({
@@ -73,9 +73,9 @@ export function AskSentinel({ action, analysis, dark }: { action: WalletAction; 
           }}
           className={cn("flex items-center gap-2 rounded-full border p-1 pl-4", dark ? "border-line-dark bg-white/[0.03]" : "border-line bg-white")}
         >
-          <label htmlFor="ask-sentinel" className="sr-only">Ask a follow-up question</label>
+          <label htmlFor="ask-watchdog" className="sr-only">Ask a follow-up question</label>
           <input
-            id="ask-sentinel"
+            id="ask-watchdog"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             maxLength={500}

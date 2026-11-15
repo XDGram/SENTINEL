@@ -23,7 +23,7 @@ interface Lists {
   errors: string[];
 }
 
-const g = globalThis as unknown as { __sentinelLists?: Lists; __sentinelListsLoading?: Promise<Lists> };
+const g = globalThis as unknown as { __watchdogLists?: Lists; __watchdogListsLoading?: Promise<Lists> };
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetchWithTimeout(url, {}, 15_000);
@@ -37,7 +37,7 @@ async function load(): Promise<Lists> {
     fetchJson<string[]>(SOURCES.ssAddresses),
     fetchJson<{ blacklist?: string[]; whitelist?: string[] }>(SOURCES.metamask),
   ]);
-  const prev = g.__sentinelLists;
+  const prev = g.__watchdogLists;
   const errors: string[] = [];
   const pick = <T,>(r: PromiseSettledResult<T>, name: string): T | undefined => {
     if (r.status === "fulfilled") return r.value;
@@ -60,14 +60,14 @@ async function load(): Promise<Lists> {
 
 /** Loaded lists; refreshes in the background after the TTL. */
 export async function getLists(force = false): Promise<Lists> {
-  const cur = g.__sentinelLists;
+  const cur = g.__watchdogLists;
   const stale = !cur || force || Date.now() - cur.loadedAt > TTL_MS;
   if (!stale) return cur;
-  g.__sentinelListsLoading ??= load().finally(() => {
-    g.__sentinelListsLoading = undefined;
+  g.__watchdogListsLoading ??= load().finally(() => {
+    g.__watchdogListsLoading = undefined;
   });
-  const next = await g.__sentinelListsLoading;
-  g.__sentinelLists = next;
+  const next = await g.__watchdogListsLoading;
+  g.__watchdogLists = next;
   return next;
 }
 

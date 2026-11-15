@@ -5,7 +5,7 @@ import type { Analysis, Language, Threat, WalletAction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { Button, MonoLabel } from "@/components/ui";
 import {
-  AskSentinel,
+  AskWatchdog,
   EvidenceList,
   fromEvidence,
   MemoryCatchBanner,
@@ -13,9 +13,9 @@ import {
   ReppoStatusCard,
   ResultSkeleton,
   VerdictHeader,
-} from "@/components/sentinel";
+} from "@/components/watchdog";
 import { ExplainButton } from "@/components/voice";
-import { LanguagePicker } from "@/components/sentinel/LanguagePicker";
+import { LanguagePicker } from "@/components/watchdog/LanguagePicker";
 import { composeBreakdownSpeech } from "@/lib/speech-text";
 import type { IntelSourceId } from "@/lib/types";
 
@@ -171,7 +171,7 @@ export function AnalysisPanel({
               Not consulted this time: {a.intel.unavailable.map((u) => u.source).join(", ")}.
             </p>
           ) : null}
-          {a.verdict !== "safe" && <AskSentinel action={panel.action} analysis={a} />}
+          {a.verdict !== "safe" && <AskWatchdog action={panel.action} analysis={a} />}
         </div>
       )}
     </div>

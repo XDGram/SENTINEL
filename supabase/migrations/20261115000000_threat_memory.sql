@@ -1,4 +1,4 @@
--- Sentinel threat memory.
+-- Watchdog threat memory.
 -- Accessed only from the server with the service role key. RLS is enabled with
 -- no policies, so the anon and authenticated roles cannot read or write.
 

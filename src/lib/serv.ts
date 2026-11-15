@@ -369,7 +369,7 @@ export async function servAsk(input: {
     `${action.kind === "send" ? "recipient" : "spender"}: ${action.to}`,
     action.dapp ? `requesting site: ${action.dapp.name} — ${action.dapp.url}` : "no website involved",
     "",
-    "SENTINEL'S ANALYSIS",
+    "WATCHDOG'S ANALYSIS",
     `verdict: ${analysis.verdict}${analysis.attackType ? ` (${analysis.attackType})` : ""}`,
     `headline: ${analysis.headline}`,
     `explanation: ${analysis.explanation}`,

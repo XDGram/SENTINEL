@@ -1,7 +1,7 @@
 -- Server access without the service_role key.
 -- The app uses the public (anon/publishable) key plus a secret header,
 -- `x-sentinel-key`, that only the server knows. RLS lets a request touch the
--- Sentinel tables only when that header's SHA-256 matches the stored hash.
+-- Watchdog tables only when that header's SHA-256 matches the stored hash.
 -- Requests with just the public key (e.g. from a browser) get nothing.
 -- The hash itself is inserted outside migrations, so no secret lives in git.
 

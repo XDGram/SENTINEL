@@ -1,7 +1,7 @@
 export { VerdictHeader, VerdictPill, VERDICT_META, plain } from "./verdict";
 export { EvidenceList, fromEvidence, fromReports } from "./EvidenceList";
 export { ReasoningTrace } from "./ReasoningTrace";
-export { AskSentinel } from "./AskSentinel";
+export { AskWatchdog } from "./AskWatchdog";
 export { ReppoStatusCard } from "./ReppoStatusCard";
 export { MemoryCatchBanner } from "./MemoryCatchBanner";
 export { CheckResult, ResultSkeleton, ResultError } from "./CheckResult";

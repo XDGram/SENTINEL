@@ -9,10 +9,10 @@ import type { ActionKind, WalletAction } from "./types";
 // ---- Rate limiting ----
 
 const g = globalThis as unknown as {
-  __sentinelRate?: Map<string, number[]>;
-  __sentinelServBudget?: { day: string; used: number };
+  __watchdogRate?: Map<string, number[]>;
+  __watchdogServBudget?: { day: string; used: number };
 };
-const hits: Map<string, number[]> = (g.__sentinelRate ??= new Map());
+const hits: Map<string, number[]> = (g.__watchdogRate ??= new Map());
 
 /** Sliding-window limiter. Returns seconds to wait, or 0 if allowed. */
 export function rateLimit(key: string, limit: number, windowMs: number): number {
@@ -40,16 +40,16 @@ const MAX_SERV_CALLS_PER_DAY = Number(process.env.SERV_MAX_CALLS_PER_DAY ?? 300)
 /** Reserve one SERV call from today's budget. False when the cap is reached. */
 export function takeServBudget(): boolean {
   const day = new Date().toISOString().slice(0, 10);
-  const b = g.__sentinelServBudget;
-  if (!b || b.day !== day) g.__sentinelServBudget = { day, used: 0 };
-  if (g.__sentinelServBudget!.used >= MAX_SERV_CALLS_PER_DAY) return false;
-  g.__sentinelServBudget!.used++;
+  const b = g.__watchdogServBudget;
+  if (!b || b.day !== day) g.__watchdogServBudget = { day, used: 0 };
+  if (g.__watchdogServBudget!.used >= MAX_SERV_CALLS_PER_DAY) return false;
+  g.__watchdogServBudget!.used++;
   return true;
 }
 
 export function servBudgetUsed(): { day: string; used: number; cap: number } {
   const day = new Date().toISOString().slice(0, 10);
-  const b = g.__sentinelServBudget;
+  const b = g.__watchdogServBudget;
   return { day, used: b && b.day === day ? b.used : 0, cap: MAX_SERV_CALLS_PER_DAY };
 }
 

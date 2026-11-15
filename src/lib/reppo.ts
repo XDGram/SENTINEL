@@ -102,7 +102,7 @@ interface PacketShape {
   simulationDisclosure?: string;
   sourceIndependence?: { independentFlaggingSources?: string[]; caveats?: string[] };
   action?: Record<string, unknown>;
-  sentinelAnalysis?: {
+  watchdogAnalysis?: {
     verdict?: string;
     attackType?: string | null;
     confidence?: number;
@@ -125,7 +125,7 @@ function buildInput(threat: Threat): string {
   } catch {
     // Keep going: the raw packet is still attached below.
   }
-  const a = packet.sentinelAnalysis ?? {};
+  const a = packet.watchdogAnalysis ?? {};
   const criteria = criteriaFor(threat.attackType);
 
   const head = [
@@ -133,7 +133,7 @@ function buildInput(threat: Threat): string {
     "Watchdog, a wallet safety agent for beginner crypto users. Before a transaction or signature is approved, it runs a deterministic rule engine, checks public threat-intelligence sources (GoPlus Security, the ScamSniffer database, the MetaMask phishing list and web community reports), then produces a verdict, a beginner-readable explanation, an auditable reasoning trace citing that evidence, and a safe fix.",
     "If this analysis is accepted, the attacker indicator below enters a shared threat memory that blocks the same attacker instantly for other users, so a wrong accept would propagate a false positive.",
     "",
-    "WHAT SENTINEL CONCLUDED",
+    "WHAT WATCHDOG CONCLUDED",
     `Attack type: ${threat.attackType}`,
     `Attacker indicator: ${threat.indicator}`,
     `Verdict: ${a.verdict ?? "unknown"}${a.confidence != null ? ` (confidence ${a.confidence})` : ""}`,

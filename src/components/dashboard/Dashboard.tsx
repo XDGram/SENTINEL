@@ -24,7 +24,7 @@ import { cn, shortAddr, timeAgo } from "@/lib/cn";
 import { MonoLabel, Skeleton } from "@/components/ui";
 import { RingsLoader, Toggle, WalletGlyph } from "@/components/ui/elements";
 import { Spotlight } from "@/components/ui/Spotlight";
-import { WalletScanReport } from "@/components/sentinel";
+import { WalletScanReport } from "@/components/watchdog";
 import { PageIntro } from "@/components/voice";
 import { useT } from "@/lib/client/useT";
 import { Logo } from "@/components/site/Logo";

@@ -81,7 +81,7 @@ The single source of truth for the UI. Both build sessions follow it exactly.
 - A small "Reset demo" control (client state only).
 
 ### Result components (shared by `/` and `/demo`)
-- `VerdictHeader`, `EvidenceList`, `ReasoningTrace`, `SafeFixButton`, `AskSentinel`, `ReppoStatusCard`, `MemoryCatchBanner`, `CheckResult` (for `/api/check`) and `WalletScanReport` (for `/api/scan/wallet`):
+- `VerdictHeader`, `EvidenceList`, `ReasoningTrace`, `SafeFixButton`, `AskWatchdog`, `ReppoStatusCard`, `MemoryCatchBanner`, `CheckResult` (for `/api/check`) and `WalletScanReport` (for `/api/scan/wallet`):
   - the scanner's summary headline
   - `riskCounts` as a segmented bar
   - the **top 10** approvals: token, spender name or short address, risk pill, reasons, "disputed" note when present
@@ -104,5 +104,5 @@ Secondary-reference style: mono, grid, numbered sections. It covers `GET /api/fe
 
 ## File ownership
 - **pro1:** foundation (`globals.css` tokens, fonts, `src/components/ui/*` via shadcn, `src/app/layout.tsx`, `src/components/site/*` nav/footer, `src/app/providers.tsx` QueryClient), `/` (`src/app/page.tsx`, `src/components/home/*` incl. threat field + Ask box shell), `/memory`, `/developers`.
-- **max1:** typed API client + hooks (`src/lib/client/*`), all result components (`src/components/sentinel/*`), `/demo` (`src/app/demo/*`, `src/components/demo/*`).
-- **Contract between them:** the Ask box (pro1) renders `<CheckResult input=… />` or `<WalletScanReport address=… />` from `@/components/sentinel`. Until max1's version lands, pro1 uses a temporary placeholder with the same props.
+- **max1:** typed API client + hooks (`src/lib/client/*`), all result components (`src/components/watchdog/*`), `/demo` (`src/app/demo/*`, `src/components/demo/*`).
+- **Contract between them:** the Ask box (pro1) renders `<CheckResult input=… />` or `<WalletScanReport address=… />` from `@/components/watchdog`. Until max1's version lands, pro1 uses a temporary placeholder with the same props.

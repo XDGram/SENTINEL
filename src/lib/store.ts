@@ -49,8 +49,8 @@ interface Backend {
 
 function memoryBackend(): Backend {
   type MemDb = { threats: Map<string, Threat>; events: ThreatEvent[]; sweeps: IntelSweep[]; baseline?: SweepBaseline };
-  const g = globalThis as unknown as { __sentinelDb?: MemDb };
-  const db: MemDb = (g.__sentinelDb ??= { threats: new Map(), events: [], sweeps: [] });
+  const g = globalThis as unknown as { __watchdogDb?: MemDb };
+  const db: MemDb = (g.__watchdogDb ??= { threats: new Map(), events: [], sweeps: [] });
   const find = (pred: (t: Threat) => boolean) => [...db.threats.values()].find(pred) ?? null;
 
   return {
@@ -394,23 +394,23 @@ function pgQuote(v: string): string {
 
 // ---------------------------------------------------------------- selection
 
-const g = globalThis as unknown as { __sentinelBackend?: Backend };
+const g = globalThis as unknown as { __watchdogBackend?: Backend };
 
 function store(): Backend {
-  if (g.__sentinelBackend) return g.__sentinelBackend;
+  if (g.__watchdogBackend) return g.__watchdogBackend;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   // Alternative to the service key: the public key plus a server-only secret
   // header that RLS checks (see supabase/migrations/*_app_key_access.sql).
   const publicKey = process.env.SUPABASE_PUBLISHABLE_KEY;
   const appKey = process.env.SENTINEL_DB_KEY;
-  g.__sentinelBackend =
+  g.__watchdogBackend =
     url && key
       ? supabaseBackend(url, key)
       : url && publicKey && appKey
         ? supabaseBackend(url, publicKey, { "x-sentinel-key": appKey })
         : memoryBackend();
-  return g.__sentinelBackend;
+  return g.__watchdogBackend;
 }
 
 /** Which backend is in use ("supabase" or "memory"). */

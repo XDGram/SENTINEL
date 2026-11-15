@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { useT } from "@/lib/client/useT";
 import type { CopyKey } from "@/lib/i18n";
-import { CheckResult, WalletScanReport } from "@/components/sentinel";
+import { CheckResult, WalletScanReport } from "@/components/watchdog";
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 

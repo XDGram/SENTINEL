@@ -223,7 +223,7 @@ function buildReppoPacket(req: AnalyzeRequest, analysis: Analysis, findings: Rul
         typedData: a.typedData,
         addressSource: a.addressSource,
       },
-      sentinelAnalysis: {
+      watchdogAnalysis: {
         verdict: analysis.verdict,
         attackType: analysis.attackType,
         confidence: analysis.confidence,
