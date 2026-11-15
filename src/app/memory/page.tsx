@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AttackType, Threat, ThreatEvent, ThreatsResponse } from "@/lib/types";
+import { useT } from "@/lib/client/useT";
 
 const POLL_MS = 30_000;
 
@@ -247,6 +248,7 @@ function ThreatCard({ t, events }: { t: Threat; events: ThreatEvent[] }) {
 }
 
 export default function MemoryPage() {
+  const tr = useT();
   const [data, setData] = useState<ThreatsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
@@ -310,7 +312,7 @@ export default function MemoryPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
       <p className="label-mono text-ink-soft">Live from Supabase · verified by Reppo</p>
-      <h1 className="font-display mt-3 text-[40px] leading-[1.05] text-ink sm:text-[56px]">Threat memory</h1>
+      <h1 className="font-display mt-3 text-[40px] leading-[1.05] text-ink sm:text-[56px]">{tr("page.memory")}</h1>
       <p className="mt-2 text-sm text-ink-soft">
         Each attacker Watchdog finds goes through four steps: discovered, sent to Reppo, verified, and then used
         to protect the next person. Only Reppo-verified threats block other users.

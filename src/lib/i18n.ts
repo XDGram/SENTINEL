@@ -79,6 +79,21 @@ export const COPY = {
   "demo.line2": { en: "One shared memory.", fr: "Une mémoire partagée.", es: "Una memoria compartida." },
   "demo.reset": { en: "Reset demo", fr: "Réinitialiser", es: "Reiniciar" },
 
+  // Other page headings
+  "page.dashboard": { en: "Dashboard", fr: "Tableau de bord", es: "Panel" },
+  "page.dashboardEyebrow": {
+    en: "Your watchdog is on duty",
+    fr: "Votre watchdog est en service",
+    es: "Tu watchdog está de guardia",
+  },
+  "page.memory": { en: "Threat memory", fr: "Mémoire des menaces", es: "Memoria de amenazas" },
+  "page.devLine1": {
+    en: "Plug verified threat intelligence",
+    fr: "Branchez des renseignements vérifiés sur les menaces",
+    es: "Conecta inteligencia de amenazas verificada",
+  },
+  "page.devLine2": { en: "into your wallet.", fr: "à votre portefeuille.", es: "a tu cartera." },
+
   // Results
   "result.safe": { en: "Looks safe", fr: "Semble sûr", es: "Parece seguro" },
   "result.risky": { en: "Dangerous", fr: "Dangereux", es: "Peligroso" },

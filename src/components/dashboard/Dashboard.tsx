@@ -26,6 +26,7 @@ import { RingsLoader, Toggle, WalletGlyph } from "@/components/ui/elements";
 import { Spotlight } from "@/components/ui/Spotlight";
 import { WalletScanReport } from "@/components/sentinel";
 import { PageIntro } from "@/components/voice";
+import { useT } from "@/lib/client/useT";
 import { Logo } from "@/components/site/Logo";
 
 const SAMPLE = { label: "Sample wallet", address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", note: "vitalik.eth (public)" };
@@ -34,6 +35,7 @@ const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const card = "rounded-[var(--radius-box)] border border-line bg-surface p-5 sm:p-6";
 
 export function Dashboard() {
+  const tr = useT();
   const [tab, setTab] = useState<"sample" | "mine">("sample");
   const [mine, setMine] = useState("");
   const [draft, setDraft] = useState("");
@@ -49,8 +51,8 @@ export function Dashboard() {
             <Logo className="h-7 w-7" />
           </div>
           <div>
-            <p className="label-mono flex items-center gap-2 text-ink-soft"><span className="uv-live text-safe" aria-hidden /> Your watchdog is on duty</p>
-            <h1 className="font-display text-[40px] leading-none text-ink">Dashboard</h1>
+            <p className="label-mono flex items-center gap-2 text-ink-soft"><span className="uv-live text-safe" aria-hidden /> {tr("page.dashboardEyebrow")}</p>
+            <h1 className="font-display text-[40px] leading-none text-ink">{tr("page.dashboard")}</h1>
           </div>
         </div>
         <HeaderActions />
