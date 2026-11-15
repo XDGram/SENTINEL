@@ -17,7 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <MotionConfig reducedMotion="user">
+      <MotionConfig reducedMotion="never">
         <ToastProvider>{children}</ToastProvider>
       </MotionConfig>
     </QueryClientProvider>

@@ -44,7 +44,7 @@ export function ThreatField() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = false; // ambient decoration: always animate
     let raf = 0;
     let visible = true;
     let w = 0;
@@ -57,12 +57,12 @@ export function ThreatField() {
     const spawn = (m?: Mote, initial = false): Mote => {
       const o = m ?? ({} as Mote);
       o.x = r() * w;
-      o.y = initial ? h * (0.15 + r() * 0.85) : h * (0.7 + r() * 0.3);
-      o.vx = (r() - 0.5) * 0.15;
-      o.vy = -(0.08 + r() * 0.35);
-      o.s = r() < 0.12 ? 2.2 : 0.9 + r() * 1.1;
-      o.c = r() < 0.35 ? DARK[Math.floor(r() * DARK.length)] : NEUTRAL[Math.floor(r() * NEUTRAL.length)];
-      o.max = 260 + r() * 520;
+      o.y = initial ? h * (0.05 + r() * 0.95) : h * (0.6 + r() * 0.4);
+      o.vx = (r() - 0.5) * 0.3;
+      o.vy = -(0.25 + r() * 0.7);
+      o.s = r() < 0.15 ? 3 : 1.4 + r() * 1.4;
+      o.c = r() < 0.6 ? "#0a0a0a" : NEUTRAL[Math.floor(r() * NEUTRAL.length)];
+      o.max = 200 + r() * 360;
       o.life = initial ? r() * o.max : 0;
       o.p = r() * Math.PI * 2;
       return o;
@@ -104,7 +104,7 @@ export function ThreatField() {
       const t = time / 1000;
       ctx.clearRect(0, 0, w, h);
       // Dense layer breathes side to side.
-      if (base) ctx.drawImage(base, -20 + Math.sin(t / 6) * 14, 0, w + 40, h);
+      if (base) ctx.drawImage(base, -20 + Math.sin(t / 3) * 18, Math.sin(t / 2.2) * 3, w + 40, h);
       if (reduce) return;
       for (const m of motes) {
         m.life++;
@@ -112,8 +112,8 @@ export function ThreatField() {
         const dx = m.x - mouse.x;
         const dy = m.y - mouse.y;
         const d2 = dx * dx + dy * dy;
-        if (d2 < 9000) {
-          const f = (1 - d2 / 9000) * 0.6;
+        if (d2 < 16000) {
+          const f = (1 - d2 / 16000) * 1.1;
           const d = Math.sqrt(d2) || 1;
           m.vx += (dx / d) * f;
           m.vy += (dy / d) * f;
@@ -123,7 +123,7 @@ export function ThreatField() {
         m.x += m.vx;
         m.y += m.vy;
         const k = m.life / m.max;
-        const alpha = Math.min(1, k * 4) * (1 - k) * (0.3 + (m.y / h) * 0.7);
+        const alpha = Math.min(1, k * 5) * (1 - k) * (0.55 + (m.y / h) * 0.45);
         if (k >= 1 || m.y < -5 || m.x < -5 || m.x > w + 5) {
           spawn(m);
           continue;
