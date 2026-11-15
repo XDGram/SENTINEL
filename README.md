@@ -62,7 +62,7 @@ Lookups run in parallel with 5-second timeouts. Sources that are not configured 
 
 1. Sentinel discovers a new attacker. The server builds an evidence packet from the rule findings and the external sources. The client cannot supply or change the payload.
 2. If SERV recommends verification and the verification rule below is met, the packet goes to Reppo (`POST /api/reppo/submit`).
-3. Reppo allows **one pending evaluation at a time**. Each evaluation settles after a **settlement window** (`REPPO_SETTLEMENT_MINUTES`, about 10–30 minutes in practice). While it waits, the threat shows as *pending*.
+3. Reppo scores the submission with a panel of evaluators, usually within **30–90 seconds**. While it waits, the threat shows as *pending*. Sentinel trusts Reppo's `accept` decision; a `block` route always rejects.
 4. `GET /api/reppo/status` polls Reppo and moves the threat along its timeline:
    - **accept** → the threat is **verified** and enters threat memory.
    - **revise / reject** → the threat is **rejected** and is not trusted.
@@ -112,7 +112,6 @@ Environment variables (see [`.env.example`](.env.example)):
 |---|---|
 | `SERV_API_KEY`, `SERV_MODEL` | SERV Reasoning |
 | `REPPO_API_KEY` | Reppo Evaluation API |
-| `REPPO_SETTLEMENT_MINUTES` | Reppo settlement window |
 | `REPPO_MAX_SUBMISSIONS` | Safety cap on demo evaluations |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Threat memory (server-side only) |
 | `TAVILY_API_KEY` or `BRAVE_API_KEY` | Web search for community reports |

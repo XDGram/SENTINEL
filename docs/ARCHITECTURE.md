@@ -35,9 +35,9 @@ If SERV is unreachable, the response is a clearly labelled rules + sources resul
 ```
 User A meets a new attacker
   → rules flag it, sources corroborate it, SERV recommends verification
-  → POST /api/reppo/submit      Reppo evaluation PENDING (10–30 min, one at a time)
+  → POST /api/reppo/submit      Reppo evaluator panel, PENDING (usually 30–90 s)
   → GET  /api/reppo/status      SETTLED: accept → VERIFIED → threat memory
-                                          revise/reject → REJECTED (not trusted)
+                                          reject / block → REJECTED (not trusted)
 User B meets the same attacker (different site, same drainer)
   → threat memory match → blocked instantly
 ```

@@ -120,7 +120,7 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
       key: "verdict",
       title: "Reppo verdict",
       state: "active",
-      detail: `Pending: Reppo takes ~10–30 min to settle.${mins != null ? ` Waiting ${mins} min so far.` : ""}`,
+      detail: `Pending: Reppo's evaluator panel usually answers in 30–90 seconds.${mins != null ? ` Waiting ${mins} min so far.` : ""}`,
     });
   } else if (t.status === "verified") {
     steps.push({

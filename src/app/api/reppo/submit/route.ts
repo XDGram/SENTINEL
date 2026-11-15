@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   if (!result.ok) {
     const message =
       result.httpStatus === 409
-        ? "Reppo allows one pending evaluation at a time. Try again when the current one settles."
+        ? "Reppo already has an evaluation in flight for this account. Try again shortly."
         : result.error;
     const res: SubmitResponse = { threat, status: "BLOCKED", message };
     return NextResponse.json(res, { status: result.httpStatus === 409 ? 409 : 502 });
