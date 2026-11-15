@@ -8,12 +8,12 @@ import { Threats } from "@/components/home/Threats";
 import { HowItWorksStory } from "@/components/home/HowItWorksStory";
 import { LearningLoop } from "@/components/home/LearningLoop";
 import { ProofStrip } from "@/components/home/ProofStrip";
-import { Intro } from "@/components/voice";
+import { IntroBar, IntroButton, IntroDismiss } from "@/components/voice";
 
 export default function Home() {
   return (
     <main>
-      <Intro />
+      <IntroBar />
       {/* Hero */}
       <section className="pt-16 pb-14 sm:pt-24">
         {/* Centred, both lines the same weight and colour: the tagline reads as
@@ -31,6 +31,14 @@ export default function Home() {
               Watchdog explains risky crypto transactions in plain English, checks real scam databases, and blocks every
               attacker it has already seen.
             </p>
+          </Reveal>
+          {/* The press that lets the browser play audio at all. Sits in the
+              reading path, between the sub-line and the input box. */}
+          <Reveal delay={0.85}>
+            <div className="mt-7 flex items-center justify-center gap-1">
+              <IntroButton />
+              <IntroDismiss />
+            </div>
           </Reveal>
           <div className="mt-10 text-left">
             <AskBox />
