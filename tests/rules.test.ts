@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fingerprintOf, isLookalike, matchingEdges, runRules } from "../src/lib/rules";
-import { CHIDI, DRAINER_SPENDER, FAKE_ROUTER, initialWallets, POISONER, SCENARIOS } from "../src/lib/sim-data";
+import { AIRDROP_SPENDER, CHIDI, DRAINER_SPENDER, FAKE_ROUTER, initialWallets, POISONER, SCENARIOS } from "../src/lib/sim-data";
 
 const wallets = initialWallets();
 const scenario = (id: string) => {
@@ -42,6 +42,16 @@ test("new permit attack is medium (uncertain) so SERV and Reppo decide", () => {
 
 test("same drainer on a different site gives the same fingerprint (learning loop key)", () => {
   assert.equal(fingerprintOf(run("a-rewards")), fingerprintOf(run("b-bonus")));
+});
+
+test("second new attacker (airdrop permit) is medium with its own fingerprint", () => {
+  const f = run("a-airdrop");
+  const p = f.find((x) => x.attackType === "malicious-permit");
+  assert.ok(p);
+  assert.equal(p.severity, "medium");
+  assert.ok(!f.some((x) => x.severity === "high"), "no high-severity finding, so SERV and Reppo decide");
+  assert.equal(fingerprintOf(f), `spender:${AIRDROP_SPENDER.toLowerCase()}`);
+  assert.notEqual(fingerprintOf(f), fingerprintOf(run("a-rewards")), "not the already-verified drainer");
 });
 
 test("fake Uniswap site: fake-dapp and unlimited approval, keyed on the spender", () => {

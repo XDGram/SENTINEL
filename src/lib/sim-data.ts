@@ -28,6 +28,11 @@ export const POISONER = "0x7a3F1b8c09E2a4D7f3B6e015C8a9D2b47E0fd91B";
 // Real address listed in ScamSniffer's blacklist (GoPlus: phishing activities).
 export const DRAINER_SPENDER = "0x43412801d29861ecc4c4d86e5becfd16af86a67b";
 
+// Second, unseen drainer behind a fake airdrop claim (fresh "new attacker" demo
+// once the USDT-rewards drainer is verified). Real address on ScamSniffer's
+// blacklist; GoPlus also links it to phishing. Checked via /api/intel/check.
+export const AIRDROP_SPENDER = "0x7fb2224cc00a8d9106ac9280abde1e2f480f4f41";
+
 // Attacker contract behind the fake Uniswap clone.
 // Real contract listed in ScamSniffer's blacklist (GoPlus: phishing activities).
 export const FAKE_ROUTER = "0x101ce0cedd142f199c9ef61739ae59b6611a0fc0";
@@ -36,6 +41,8 @@ export const FAKE_ROUTER = "0x101ce0cedd142f199c9ef61739ae59b6611a0fc0";
 export const PHISH_REWARDS_SITE = "https://usdt-rewards.xyz/claim";
 export const PHISH_UNISWAP_SITE = "https://uniswap.lc/swap";
 export const PHISH_BONUS_SITE = "https://usdt-erc20.network/bonus";
+// Listed by GoPlus, ScamSniffer and MetaMask.
+export const PHISH_AIRDROP_SITE = "https://chainsairdrop.com/claim";
 
 export const KNOWN_SPENDERS: Record<string, string> = {
   "0x000000000022d473030f116ddee9f6b43ac78ba3": "Uniswap Permit2",
@@ -187,6 +194,34 @@ export const SCENARIOS: Scenario[] = [
         message: {
           owner: ADA_ADDR,
           spender: DRAINER_SPENDER,
+          value: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+          nonce: 0,
+          deadline: "4102444800",
+        },
+      },
+    },
+  },
+  {
+    id: "a-airdrop",
+    walletId: "A",
+    tag: "new-attack",
+    title: "Claim a token airdrop",
+    story: "An X reply tells Ada she qualifies for an airdrop on chainsairdrop.com. The site asks her to sign a message to claim.",
+    action: {
+      id: "a-airdrop",
+      kind: "permit",
+      chain: CHAIN,
+      from: ADA_ADDR,
+      to: AIRDROP_SPENDER,
+      token: USDT,
+      amount: MAX,
+      dapp: { name: "Chains Airdrop", url: PHISH_AIRDROP_SITE },
+      typedData: {
+        primaryType: "Permit",
+        domain: { name: "Tether USD", chainId: 1, verifyingContract: USDT.address },
+        message: {
+          owner: ADA_ADDR,
+          spender: AIRDROP_SPENDER,
           value: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
           nonce: 0,
           deadline: "4102444800",
