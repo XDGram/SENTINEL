@@ -5,9 +5,10 @@ import { useToast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import type { Threat, Wallet, WalletAction } from "@/lib/types";
-import { initialWallets, SCENARIOS, type Scenario } from "@/lib/sim-data";
+import { DRAINER_POOL, initialWallets, SCENARIOS, withDrainer, type Scenario } from "@/lib/sim-data";
 import { api, ApiError } from "@/lib/client/api";
-import { useHealth } from "@/lib/client/hooks";
+import { useHealth, useThreats } from "@/lib/client/hooks";
+import { shortAddr } from "@/lib/cn";
 import { cn } from "@/lib/cn";
 import { MonoLabel } from "@/components/ui";
 import { PhoneWallet, type PhoneState } from "./PhoneWallet";
@@ -25,6 +26,20 @@ export function DemoClient() {
   const qc = useQueryClient();
   const toast = useToast();
   const health = useHealth();
+  const threats = useThreats();
+  // Pick the first pool drainer Watchdog has never seen (any status), and lock
+  // it once Ada meets it, so Bayo's repeat scenario uses the same drainer.
+  const [locked, setLocked] = useState<number | null>(null);
+  // "Seen" means it has been sent to Reppo (or verified/rejected). Merely viewing
+  // a drainer in a rehearsal doesn't use it up.
+  const pickFresh = (list: { fingerprint: string; indicator: string; status: string }[]) => {
+    const seen = new Set(list.filter((t) => t.status !== "discovered").flatMap((t) => [t.fingerprint, t.indicator]));
+    return DRAINER_POOL.findIndex((d) => !seen.has(`spender:${d.spender.toLowerCase()}`));
+  };
+  const freshIdx = threats.data ? pickFresh(threats.data.threats) : 0;
+  const poolIdx = locked ?? (freshIdx === -1 ? DRAINER_POOL.length - 1 : freshIdx);
+  const drainer = DRAINER_POOL[poolIdx];
+  const scenarios = withDrainer(SCENARIOS, drainer);
   const [wallets, setWallets] = useState<Record<Id, Wallet>>(() => initialWallets());
   const [phones, setPhones] = useState<Record<Id, PhoneState>>({ A: { view: "home" }, B: { view: "home" } });
   const [panel, setPanel] = useState<PanelState | null>(null);
@@ -144,6 +159,8 @@ export function DemoClient() {
     setWallets(initialWallets());
     setPhones({ A: { view: "home" }, B: { view: "home" } });
     setPanel(null);
+    setLocked(null);
+    void threats.refetch();
   };
 
   const onSettled = useCallback((t: Threat) => {
@@ -201,15 +218,41 @@ export function DemoClient() {
         ))}
       </ol>
 
+      <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
+        <span className="uv-live text-safe" aria-hidden />
+        {!threats.data && locked === null ? (
+          <>Checking Watchdog&apos;s memory for a drainer it hasn&apos;t met yet…</>
+        ) : freshIdx === -1 && locked === null ? (
+          <>Every demo drainer is already in Watchdog&apos;s memory, so Ada will be protected instantly too.</>
+        ) : (
+          <>
+            This run&apos;s new attacker: <code className="font-mono text-ink">{shortAddr(drainer.spender, 5)}</code> · a real ScamSniffer-listed
+            drainer Watchdog has never seen ({poolIdx + 1} of {DRAINER_POOL.length})
+          </>
+        )}
+      </p>
+
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,340px)_minmax(0,1fr)]">
         {(["A", "B"] as const).map((id) => (
           <PhoneWallet
             key={id}
             wallet={wallets[id]}
-            scenarios={SCENARIOS.filter((s) => s.walletId === id)}
+            scenarios={scenarios.filter((s) => s.walletId === id)}
             state={phones[id]}
             active={panel?.walletId === id}
-            onPick={(s) => setPhone(id, { view: "review", scenario: s, action: s.action })}
+            onPick={async (s) => {
+              if (s.id === "a-airdrop" && locked === null) {
+                // Always decide from fresh data, never from a list still loading.
+                const latest = (await threats.refetch()).data?.threats ?? [];
+                const idx = pickFresh(latest);
+                const chosen = idx === -1 ? DRAINER_POOL.length - 1 : idx;
+                setLocked(chosen);
+                const fresh = withDrainer(SCENARIOS, DRAINER_POOL[chosen]).find((x) => x.id === s.id)!;
+                setPhone(id, { view: "review", scenario: fresh, action: fresh.action });
+                return;
+              }
+              setPhone(id, { view: "review", scenario: s, action: s.action });
+            }}
             onConfirm={() => confirm(id)}
             onCancel={() => cancel(id)}
             onHome={() => setPhone(id, { view: "home" })}

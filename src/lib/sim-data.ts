@@ -339,3 +339,54 @@ export const SCENARIOS: Scenario[] = [
     },
   },
 ];
+
+// ---- Fresh-attacker pool for the learning-loop demo ----
+// Real drainer addresses from ScamSniffer's public blacklist that GoPlus also
+// flags for phishing, each paired with real phishing sites GoPlus flags.
+// (Which drainer sits behind which site is a demo pairing.) The demo picks the
+// first drainer Watchdog has never seen, so the "new attack" is always new.
+export interface DrainerEntry {
+  spender: string;
+  adaSite: string;
+  bayoSite: string;
+}
+
+export const DRAINER_POOL: DrainerEntry[] = [
+  { spender: AIRDROP_SPENDER, adaSite: "chainsairdrop.com", bayoSite: "reward-aero.xyz" },
+  { spender: "0x40f576a94e3d1cdabe66426835e33191f859ae82", adaSite: "claim-mindofpepe.live", bayoSite: "quarm-drop.com" },
+  { spender: "0x30dadfcbcf672a3be8fb67aacf001d56929ff7ea", adaSite: "phala-rewards.com", bayoSite: "myslerfdrops.space" },
+  { spender: "0x7c74dc20f2d9511c0157f2931bdd51c7fdfce7da", adaSite: "debank-claim.com", bayoSite: "lostdrops.com" },
+  { spender: "0x8928a0785591d0b738cdf8276cade981cf0cd7c0", adaSite: "bonus-desyn.xyz", bayoSite: "megadrop-lista.com" },
+  { spender: "0xe4244f235d88b690648cdaa2c45e94addffe12cb", adaSite: "yugaclaim.com", bayoSite: "blast-drop.website" },
+  { spender: "0x545534d53ce276ecce0395e184a65091d84ab112", adaSite: "bonus-mantas.network", bayoSite: "grassrewards.online" },
+  { spender: "0x64726c9f0148331e5433122fa85943b8ecdbcd92", adaSite: "kaito-claim.xyz", bayoSite: "airdropnot.top" },
+  { spender: "0xb0831f26ce6ebd0b778ad2e27ebcd29b387842c7", adaSite: "cobra-airdrop.com", bayoSite: "claim-moonbag.site" },
+  { spender: "0xaffe4546f6bd8732aebc357ef84e516d35b9ea02", adaSite: "droptwts.xyz", bayoSite: "weclaiming.live" },
+];
+
+/** The airdrop scenarios rebuilt around one pool entry. */
+export function withDrainer(scenarios: Scenario[], d: DrainerEntry): Scenario[] {
+  const patch = (s: Scenario, site: string, owner: string): Scenario => ({
+    ...s,
+    story:
+      s.walletId === "A"
+        ? `An X reply tells Ada she qualifies for an airdrop on ${site}. The site asks her to sign a message to claim.`
+        : `A Telegram group sends Bayo to ${site}. It asks him to sign a message to claim.`,
+    action: {
+      ...s.action,
+      to: d.spender,
+      dapp: { name: s.action.dapp?.name ?? "Claim", url: `https://${site}/claim` },
+      typedData: {
+        ...(s.action.typedData ?? {}),
+        message: {
+          ...((s.action.typedData?.message as Record<string, unknown>) ?? {}),
+          owner,
+          spender: d.spender,
+        },
+      },
+    },
+  });
+  return scenarios.map((s) =>
+    s.id === "a-airdrop" ? patch(s, d.adaSite, ADA_ADDR) : s.id === "b-airdrop" ? patch(s, d.bayoSite, BAYO_ADDR) : s,
+  );
+}
