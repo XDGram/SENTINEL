@@ -42,7 +42,7 @@ export function PhoneWallet({ wallet, scenarios, state, active, onPick, onConfir
       aria-label={`${wallet.owner}'s wallet (simulated)`}
       className={cn(
         "relative flex w-full flex-col overflow-hidden rounded-[2rem] bg-ink text-white shadow-[var(--shadow-box)] ring-1 transition",
-        active ? "ring-accent/60" : "ring-black/5",
+        active ? "ring-white/40" : "ring-black/5",
       )}
     >
       <div className="flex items-center justify-between px-5 pt-4 text-[11px] text-white/45">
@@ -186,7 +186,7 @@ function Review({
       )}
       <div className="mt-auto pt-5">
         {checking ? (
-          <div className="flex justify-center rounded-2xl bg-accent/10 py-3.5 text-sm font-medium text-accent">
+          <div className="flex justify-center rounded-2xl bg-white/[0.06] py-3.5 text-sm font-medium text-white/80">
             <RingsLoader label="Watchdog is checking…" />
           </div>
         ) : (

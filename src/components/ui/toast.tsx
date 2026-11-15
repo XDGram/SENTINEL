@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <span
                 className={cn(
                   "grid h-11 w-11 shrink-0 place-items-center rounded-full",
-                  t.tone === "bad" ? "bg-risky/12 text-risky" : t.tone === "good" ? "bg-safe/12 text-safe" : "bg-accent/25 text-ink",
+                  t.tone === "bad" ? "bg-risky/12 text-risky" : t.tone === "good" ? "bg-safe/12 text-safe" : "bg-canvas text-ink",
                 )}
               >
                 {t.icon}
@@ -59,7 +59,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink">{t.title}</p>
                 <p className="truncate text-xs text-ink-soft">{t.description}</p>
-                {t.tag && <span className="mt-1 inline-block rounded-md bg-accent/25 px-1.5 font-mono text-[11px] text-ink">{t.tag}</span>}
+                {t.tag && <span className="mt-1 inline-block rounded-md bg-canvas px-1.5 font-mono text-[11px] text-ink">{t.tag}</span>}
               </div>
               {t.action ? (
                 <Link href={t.action.href} className="shrink-0 rounded-xl bg-ink px-3 py-2 text-xs font-semibold text-white hover:bg-ink/90">

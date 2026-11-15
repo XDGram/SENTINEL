@@ -242,7 +242,7 @@ function WalletCard({
         <button
           onClick={onOpenReport}
           aria-label="Open the approval report"
-          className="uv-tip grid h-16 w-16 place-items-center rounded-full bg-accent text-ink shadow-[0_0_0_6px_rgb(229_155_208/.25)] transition-transform hover:scale-105 active:scale-95" data-tip="Open the full approval report"
+          className="uv-tip grid h-16 w-16 place-items-center rounded-full bg-ink text-white shadow-[0_0_0_6px_rgb(30_42_40/.08)] transition-transform hover:scale-105 active:scale-95" data-tip="Open the full approval report"
         >
           <ArrowUpRight className="h-6 w-6" />
         </button>
@@ -262,13 +262,13 @@ function MemoryCard() {
   );
   return (
     <Spotlight className="relative flex flex-col rounded-[var(--radius-box)] bg-deep p-5 text-white sm:p-6">
-      <svg className="pointer-events-none absolute -top-6 right-6 h-40 w-40 animate-[spin_40s_linear_infinite] text-accent/15" viewBox="0 0 100 100" aria-hidden>
+      <svg className="pointer-events-none absolute -top-6 right-6 h-40 w-40 animate-[spin_40s_linear_infinite] text-white/[0.06]" viewBox="0 0 100 100" aria-hidden>
         <path fill="currentColor" d="M50 0C54 30 70 46 100 50C70 54 54 70 50 100C46 70 30 54 0 50C30 46 46 30 50 0Z" />
       </svg>
       <div className="relative flex items-center justify-between">
         <Link href="/memory" className="label-mono inline-flex h-10 items-center gap-2 rounded-full bg-white/10 pr-1 pl-4 text-white hover:bg-white/15">
           Threat memory
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-ink">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-white text-ink">
             <Plus className="h-4 w-4" />
           </span>
         </Link>
@@ -276,7 +276,7 @@ function MemoryCard() {
       <p className="label-mono relative mt-8 text-white/50">Reppo-verified attackers</p>
       <div className="relative mt-1 flex flex-wrap items-center gap-3">
         {feed.isPending ? <Skeleton dark className="h-14 w-24" /> : <span className="font-display text-[72px] leading-[0.9] tabular-nums">{feed.data?.count ?? "—"}</span>}
-        {feed.isSuccess && <span className="rounded-full bg-accent/20 px-2.5 py-1 text-xs font-medium text-accent">+{today} today</span>}
+        {feed.isSuccess && <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/80">+{today} today</span>}
       </div>
       <div className="relative mt-auto grid grid-cols-2 gap-3 pt-8">
         <SubTile label="Reppo evaluations" value={stats.data?.reppo.submissions} icon={<Send className="h-3.5 w-3.5" />} />
@@ -418,7 +418,7 @@ function PipelineCard() {
           <h2 className="font-medium text-ink">Learning</h2>
         </div>
         {latest && (
-          <span className="uv-tip border-b-2 border-accent pb-0.5 font-mono text-sm text-ink" data-tip={`Latest Reppo score · eval ${latest.evalId}`}>
+          <span className="uv-tip border-b-2 border-ink pb-0.5 font-mono text-sm text-ink" data-tip={`Latest Reppo score · eval ${latest.evalId}`}>
             ◎ {latest.score}/100
           </span>
         )}
@@ -438,7 +438,7 @@ function PipelineCard() {
                 </div>
                 <div className="relative mt-1.5 h-2 rounded-full bg-canvas">
                   <motion.div
-                    className={cn("h-full rounded-full", r.highlight ? "bg-accent" : "bg-ink/25")}
+                    className={cn("h-full rounded-full", r.highlight ? "bg-ink" : "bg-ink/20")}
                     initial={{ width: 0 }}
                     animate={{ width: `${(r.value / max) * 100}%` }}
                     transition={{ duration: 0.7, ease: "easeOut" }}
@@ -482,7 +482,7 @@ function ActivityCard() {
 
       {pending && (
         <div className="mt-5 flex items-center gap-3 rounded-2xl border border-uncertain/40 bg-uncertain/5 p-3">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-accent">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white">
             <Send className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">

@@ -14,11 +14,11 @@ export function MemoryCatchBanner({ analysis, dark }: { analysis: Analysis; dark
       animate={{ opacity: 1, scale: 1 }}
       className={cn(
         "relative overflow-hidden rounded-2xl border p-4",
-        dark ? "border-accent/30 bg-accent/10" : "border-accent/40 bg-accent/15",
+        dark ? "border-line-dark bg-white/[0.04]" : "border-line bg-white",
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent text-ink">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-ink text-white">
           <Zap className="h-4 w-4" aria-hidden />
         </div>
         <div className="min-w-0">
@@ -39,7 +39,7 @@ export function MemoryCatchBanner({ analysis, dark }: { analysis: Analysis; dark
 
 function Stat({ label, value, dark }: { label: string; value: string; dark?: boolean }) {
   return (
-    <span className={cn("rounded-lg px-2.5 py-1", dark ? "bg-white/10" : "bg-white/70")}>
+    <span className={cn("rounded-lg px-2.5 py-1", dark ? "bg-white/10" : "bg-canvas")}>
       <span className={cn("label-mono mr-2", dark ? "text-white/50" : "text-ink-soft")}>{label}</span>
       <span className={cn("font-mono text-sm tabular-nums", dark ? "text-white" : "text-ink")}>{value}</span>
     </span>

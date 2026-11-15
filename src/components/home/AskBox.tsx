@@ -169,7 +169,7 @@ function Chip({ active, onClick, icon, children }: { active: boolean; onClick: (
 function ChoiceButton({ onClick, icon, title, sub }: { onClick: () => void; icon: React.ReactNode; title: string; sub: string }) {
   return (
     <button onClick={onClick} className="flex items-start gap-3 rounded-xl bg-white/[0.06] p-3 text-left transition-colors hover:bg-white/[0.12]">
-      <span className="mt-0.5 text-accent">{icon}</span>
+      <span className="mt-0.5 text-white/70">{icon}</span>
       <span>
         <span className="block text-sm font-medium">{title}</span>
         <span className="block text-xs text-white/55">{sub}</span>

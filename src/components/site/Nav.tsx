@@ -68,7 +68,7 @@ export function Nav() {
                   <span
                     className={cn(
                       "uv-tip relative grid h-4 min-w-4 place-items-center rounded-full px-1 font-mono text-[10px] transition-colors",
-                      isActive ? "bg-ink text-white" : "bg-accent/30 text-ink",
+                      isActive ? "bg-ink text-white" : "bg-ink/10 text-ink",
                     )}
                     data-tip="Reppo-verified attackers in memory"
                   >
@@ -104,7 +104,7 @@ export function Nav() {
               className={cn("flex items-center justify-between rounded-2xl px-4 py-3 text-sm", active === l.href ? "bg-canvas text-ink" : "text-ink-soft")}
             >
               {l.label}
-              {l.badge && verified != null && <span className="rounded-full bg-accent/30 px-2 font-mono text-[11px] text-ink">{verified}</span>}
+              {l.badge && verified != null && <span className="rounded-full bg-ink/10 px-2 font-mono text-[11px] text-ink">{verified}</span>}
             </Link>
           ))}
         </nav>
