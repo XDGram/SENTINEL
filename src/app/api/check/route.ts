@@ -10,7 +10,10 @@ import { servAvailable, servExplainCheck, SERV_MODEL, type CheckSubject, type Se
 import { TtlCache } from "@/lib/intel/shared";
 import { createThreat } from "@/lib/store";
 import type { AccountCode } from "@/lib/scan-abi";
-import type { AttackType, IntelReport, IntelSourceId } from "@/lib/types";
+import type { AttackType, IntelReport, IntelSourceId, Language } from "@/lib/types";
+
+/** Languages SERV has been exercised in. */
+const SUPPORTED_LANGUAGES: Language[] = ["en", "fr", "es"];
 
 export const dynamic = "force-dynamic";
 
@@ -53,10 +56,13 @@ export async function POST(req: Request) {
   const wait = rateLimit(`check:${clientKey(req)}`, RATE_LIMIT, RATE_WINDOW_MS);
   if (wait > 0) return NextResponse.json({ error: `Too many checks. Try again in ${wait}s.` }, { status: 429 });
 
-  const body = (await req.json().catch(() => null)) as { input?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { input?: unknown; language?: unknown } | null;
   const raw = typeof body?.input === "string" ? body.input : "";
   if (!raw.trim()) return NextResponse.json({ error: "input is required" }, { status: 400 });
   if (raw.length > 2000) return NextResponse.json({ error: "input is too long" }, { status: 400 });
+
+  // Explanations can come back in a language the reader actually uses.
+  const language: Language = SUPPORTED_LANGUAGES.includes(body?.language as Language) ? (body!.language as Language) : "en";
 
   const normalised = normaliseInput(raw);
   if (normalised.kind === "unknown") {
@@ -88,7 +94,7 @@ export async function POST(req: Request) {
         sourcesBlock: sourcesForPrompt(payload.reports, extraEvidence(payload)),
         anyFlagged: payload.flaggedBy.length > 0,
         anyMalicious: maliciousSources(payload.reports).length > 0,
-        language: "en",
+        language,
       });
       // The server knows what the subject actually is from eth_getCode and the
       // token lookup, so it does not depend on the model to classify it.

@@ -3,7 +3,7 @@
 import { BadgeCheck, RotateCcw, ShieldAlert, Zap } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Language, Threat, Wallet, WalletAction } from "@/lib/types";
 import { DRAINER_POOL, initialWallets, SCENARIOS, withDrainer, type Scenario } from "@/lib/sim-data";
 import { api, ApiError } from "@/lib/client/api";
@@ -14,6 +14,7 @@ import { MonoLabel } from "@/components/ui";
 import { PhoneWallet, type PhoneState } from "./PhoneWallet";
 import { AnalysisPanel, type PanelState } from "./AnalysisPanel";
 import { PageIntro } from "@/components/voice";
+import { getLanguage, setLanguage as setGlobalLanguage, subscribeLanguage } from "@/lib/client/language";
 
 type Id = "A" | "B";
 
@@ -45,10 +46,16 @@ export function DemoClient() {
   const [phones, setPhones] = useState<Record<Id, PhoneState>>({ A: { view: "home" }, B: { view: "home" } });
   const [panel, setPanel] = useState<PanelState | null>(null);
   const [fixing, setFixing] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguageState] = useState<Language>("en");
   // The scenario behind the open panel, so a language change can re-run the
   // same request rather than inventing one.
   const lastScenario = useRef<Scenario | null>(null);
+
+  // Keep the panel's picker in step with the one in the navigation bar.
+  useEffect(() => {
+    setLanguageState(getLanguage());
+    return subscribeLanguage(setLanguageState);
+  }, []);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const setPhone = (id: Id, s: PhoneState) => setPhones((p) => ({ ...p, [id]: s }));
@@ -198,7 +205,8 @@ export function DemoClient() {
   // Switching language re-runs the same action, so the explanation, the
   // reasoning and the spoken verdict all come back in it.
   const onLanguage = (next: Language) => {
-    setLanguage(next);
+    setLanguageState(next);
+    setGlobalLanguage(next);
     const scenario = lastScenario.current;
     if (panel && scenario) void analyze(panel.walletId, scenario, panel.action, next);
   };

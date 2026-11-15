@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { clientKey, rateLimit, takeServBudget } from "@/lib/guard";
 import { isAddress } from "@/lib/scan-abi";
+import type { Language } from "@/lib/types";
+
+/** Languages SERV has been exercised in. */
+const SUPPORTED_LANGUAGES: Language[] = ["en", "fr", "es"];
 import { scanForPrompt, scanWallet, type WalletScanResult } from "@/lib/wallet-scan";
 import { servAvailable, servExplainScan, SERV_MODEL, type ScanRiskLevel, type ServScan } from "@/lib/serv";
 import { TtlCache } from "@/lib/intel/shared";
@@ -36,11 +40,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Too many scans. Try again in ${wait}s.` }, { status: 429 });
   }
 
-  const body = (await req.json().catch(() => null)) as { address?: unknown; chainId?: unknown; forceModeA?: unknown } | null;
+  const body = (await req.json().catch(() => null)) as { address?: unknown; chainId?: unknown; forceModeA?: unknown; language?: unknown } | null;
   const address = typeof body?.address === "string" ? body.address.trim() : "";
   if (!isAddress(address)) {
     return NextResponse.json({ error: "address must be a 0x address (40 hex characters)" }, { status: 400 });
   }
+  const language: Language = SUPPORTED_LANGUAGES.includes(body?.language as Language) ? (body!.language as Language) : "en";
   const chainId = Number(body?.chainId ?? 1);
   if (!Number.isInteger(chainId) || chainId !== 1) {
     // Only Ethereum mainnet is wired up; say so rather than returning wrong data.
@@ -72,7 +77,7 @@ export async function POST(req: Request) {
         accountNote,
         scanBlock: scanForPrompt(scan),
         coverage: scan.coverage.limitations,
-        language: "en",
+        language,
       });
       // The risk level follows from the findings, so the server sets it rather
       // than trusting the model: a wallet with no approvals at all is "none".

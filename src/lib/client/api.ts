@@ -17,6 +17,7 @@ import type {
 import type { ApprovalFinding, ScanCoverage } from "@/lib/wallet-scan";
 import type { ServCheck, ServScan } from "@/lib/serv";
 import type { FeedResponse } from "@/app/api/feed/route";
+import { getLanguage } from "./language";
 
 export class ApiError extends Error {
   constructor(
@@ -139,12 +140,12 @@ export type { FeedResponse, ApprovalFinding, ServCheck, ServScan, Verdict, Langu
 
 export const api = {
   health: () => request<Health>("/api/health"),
-  analyze: (action: WalletAction, walletId: "A" | "B", language: Language = "en") =>
+  analyze: (action: WalletAction, walletId: "A" | "B", language: Language = getLanguage()) =>
     post<Analysis>("/api/analyze", { action, walletId, language } satisfies AnalyzeRequest),
-  ask: (action: WalletAction, analysis: Analysis, question: string, language: Language = "en") =>
+  ask: (action: WalletAction, analysis: Analysis, question: string, language: Language = getLanguage()) =>
     post<AskResponse>("/api/ask", { action, analysis, question, language } satisfies AskRequest),
-  check: (input: string) => post<CheckResponse>("/api/check", { input }),
-  scanWallet: (address: string) => post<ScanResponse>("/api/scan/wallet", { address }),
+  check: (input: string, language: Language = getLanguage()) => post<CheckResponse>("/api/check", { input, language }),
+  scanWallet: (address: string, language: Language = getLanguage()) => post<ScanResponse>("/api/scan/wallet", { address, language }),
   submitToReppo: (fingerprint: string, walletId: "A" | "B") =>
     post<SubmitResponse>("/api/reppo/submit", { fingerprint, walletId }),
   reppoStatus: (threatId: string) => request<StatusResponse>(`/api/reppo/status?threatId=${encodeURIComponent(threatId)}`),
