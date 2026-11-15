@@ -4,7 +4,6 @@
 // /api/threats, and pending Reppo evaluations are advanced through
 // /api/reppo/status. Nothing here is simulated.
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AttackType, Threat, ThreatEvent, ThreatsResponse } from "@/lib/types";
 
@@ -25,11 +24,11 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 const STATUS_STYLE: Record<Threat["status"], { label: string; cls: string }> = {
-  discovered: { label: "Discovered", cls: "bg-sky-500/15 text-sky-300 ring-sky-500/30" },
-  submitted: { label: "Pending at Reppo", cls: "bg-amber-500/15 text-amber-300 ring-amber-500/30" },
-  verified: { label: "Verified", cls: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30" },
-  rejected: { label: "Rejected by Reppo", cls: "bg-rose-500/15 text-rose-300 ring-rose-500/30" },
-  failed: { label: "Reppo eval failed", cls: "bg-slate-500/20 text-slate-300 ring-slate-500/30" },
+  discovered: { label: "Discovered", cls: "bg-teal/10 text-teal ring-teal/30" },
+  submitted: { label: "Pending at Reppo", cls: "bg-pending/10 text-pending ring-pending/30" },
+  verified: { label: "Verified", cls: "bg-safe/10 text-safe ring-safe/30" },
+  rejected: { label: "Rejected by Reppo", cls: "bg-risky/10 text-risky ring-risky/30" },
+  failed: { label: "Reppo eval failed", cls: "bg-ink/5 text-ink-soft ring-line" },
 };
 
 type StepState = "done" | "active" | "bad" | "todo";
@@ -77,11 +76,11 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
         .filter(Boolean)
         .join(" ") || undefined,
       extra: t.externalSources?.length ? (
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-ink-soft">
           Corroborated by: {t.externalSources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")}
         </p>
       ) : (
-        <p className="mt-1 text-xs text-slate-500">No independent external source yet.</p>
+        <p className="mt-1 text-xs text-ink0">No independent external source yet.</p>
       ),
     },
   ];
@@ -106,8 +105,8 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
       at: t.submittedAt ?? submitted?.at,
       detail: submitted?.detail ?? "Sent to Reppo for independent evaluation.",
       extra: t.reppoEvalId ? (
-        <p className="mt-1 text-xs text-slate-400">
-          Eval ID <span className="addr text-slate-300">{t.reppoEvalId}</span>
+        <p className="mt-1 text-xs text-ink-soft">
+          Eval ID <span className="addr text-ink-soft">{t.reppoEvalId}</span>
         </p>
       ) : null,
     });
@@ -120,7 +119,7 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
       key: "verdict",
       title: "Reppo verdict",
       state: "active",
-      detail: `Pending: Reppo's evaluator panel usually answers in 30–90 seconds.${mins != null ? ` Waiting ${mins} min so far.` : ""}`,
+      detail: `Pending: Reppo's evaluators usually answer within a few minutes.${mins != null ? ` Waiting ${mins} min so far.` : ""}`,
     });
   } else if (t.status === "verified") {
     steps.push({
@@ -155,7 +154,7 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
       detail: catches[0].detail,
       extra:
         catches.length > 1 ? (
-          <ul className="mt-2 space-y-1 text-xs text-slate-400">
+          <ul className="mt-2 space-y-1 text-xs text-ink-soft">
             {catches.slice(1, 6).map((c) => (
               <li key={c.id}>
                 {fmt(c.at)}
@@ -183,19 +182,19 @@ function buildSteps(t: Threat, events: ThreatEvent[]): Step[] {
 function ReppoScore({ t }: { t: Threat }) {
   if (t.reppoScore == null && !t.reppoDecision) return null;
   return (
-    <p className="mt-1 text-xs text-slate-400">
-      {t.reppoDecision && <>Decision <span className="text-slate-200">{t.reppoDecision}</span></>}
-      {t.reppoScore != null && <> · score <span className="text-slate-200">{t.reppoScore}/100</span></>}
-      {t.reppoEvalId && <> · eval <span className="addr text-slate-300">{t.reppoEvalId}</span></>}
+    <p className="mt-1 text-xs text-ink-soft">
+      {t.reppoDecision && <>Decision <span className="text-ink">{t.reppoDecision}</span></>}
+      {t.reppoScore != null && <> · score <span className="text-ink">{t.reppoScore}/100</span></>}
+      {t.reppoEvalId && <> · eval <span className="addr text-ink-soft">{t.reppoEvalId}</span></>}
     </p>
   );
 }
 
 const DOT: Record<StepState, string> = {
-  done: "bg-emerald-400 ring-emerald-400/30",
-  active: "bg-amber-400 ring-amber-400/30 pulse-soft",
-  bad: "bg-rose-400 ring-rose-400/30",
-  todo: "bg-slate-700 ring-slate-700/40",
+  done: "bg-safe ring-safe/20",
+  active: "bg-pending ring-pending/25 animate-pulse",
+  bad: "bg-risky ring-risky/20",
+  todo: "bg-line ring-line/60",
 };
 
 function Timeline({ steps }: { steps: Step[] }) {
@@ -204,18 +203,18 @@ function Timeline({ steps }: { steps: Step[] }) {
       {steps.map((s, i) => (
         <li key={s.key} className="relative flex gap-3 pb-5 last:pb-0">
           {i < steps.length - 1 && (
-            <span aria-hidden className="absolute left-[7px] top-5 bottom-0 w-px bg-slate-700" />
+            <span aria-hidden className="absolute left-[7px] top-5 bottom-0 w-px bg-line" />
           )}
           <span aria-hidden className={`relative mt-1 h-[15px] w-[15px] shrink-0 rounded-full ring-4 ${DOT[s.state]}`} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <h3 className={`text-sm font-medium ${s.state === "todo" ? "text-slate-500" : "text-slate-100"}`}>
+              <h3 className={`text-sm font-medium ${s.state === "todo" ? "text-ink0" : "text-ink"}`}>
                 {s.title}
               </h3>
-              {s.at && <time className="text-xs text-slate-500">{fmt(s.at)}</time>}
+              {s.at && <time className="text-xs text-ink0">{fmt(s.at)}</time>}
             </div>
             {s.detail && (
-              <p className={`mt-0.5 text-sm break-words ${s.state === "todo" ? "text-slate-500" : "text-slate-300"}`}>
+              <p className={`mt-0.5 text-sm break-words ${s.state === "todo" ? "text-ink0" : "text-ink-soft"}`}>
                 {s.detail}
               </p>
             )}
@@ -231,12 +230,12 @@ function ThreatCard({ t, events }: { t: Threat; events: ThreatEvent[] }) {
   const steps = useMemo(() => buildSteps(t, events), [t, events]);
   const st = STATUS_STYLE[t.status];
   return (
-    <article className="slide-up rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+    <article className="rounded-[var(--radius-card)] border border-line bg-surface p-5 sm:p-6">
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{ATTACK_LABEL[t.attackType] ?? t.attackType}</p>
-          <h2 className="mt-0.5 text-base font-semibold text-slate-100 break-words">{t.summary}</h2>
-          <p className="addr mt-1 text-xs text-slate-400" title={t.indicator}>
+          <p className="label-mono text-ink-soft">{ATTACK_LABEL[t.attackType] ?? t.attackType}</p>
+          <h2 className="mt-0.5 text-base font-semibold text-ink break-words">{t.summary}</h2>
+          <p className="addr mt-1 text-xs text-ink-soft" title={t.indicator}>
             {shortIndicator(t.indicator)}
           </p>
         </div>
@@ -309,15 +308,10 @@ export default function MemoryPage() {
   }, [data]);
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:py-12">
-      <nav className="mb-6 text-sm">
-        <Link href="/" className="text-slate-400 hover:text-slate-200">
-          ← Back to Sentinel
-        </Link>
-      </nav>
-
-      <h1 className="text-2xl font-semibold text-slate-50">Threat memory</h1>
-      <p className="mt-2 text-sm text-slate-400">
+    <main className="mx-auto w-full max-w-3xl px-4 pt-12 pb-24 sm:px-6 sm:pt-16">
+      <p className="label-mono text-ink-soft">Live from Supabase · verified by Reppo</p>
+      <h1 className="font-display mt-3 text-[40px] leading-[1.05] text-ink sm:text-[56px]">Threat memory</h1>
+      <p className="mt-2 text-sm text-ink-soft">
         Each attacker Sentinel finds goes through four steps: discovered, sent to Reppo, verified, and then used
         to protect the next person. Only Reppo-verified threats block other users.
       </p>
@@ -330,32 +324,32 @@ export default function MemoryPage() {
             ["Pending", counts.pending],
             ["Blocks", counts.caught],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
-              <dt className="text-xs text-slate-500">{k}</dt>
-              <dd className="text-lg font-semibold text-slate-100 tabular-nums">{v}</dd>
+            <div key={k} className="rounded-[var(--radius-card)] border border-line bg-surface px-4 py-3">
+              <dt className="text-xs text-ink0">{k}</dt>
+              <dd className="font-display text-3xl text-ink tabular-nums">{v}</dd>
             </div>
           ))}
         </dl>
       )}
 
-      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500">
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-ink0">
         <span>{updatedAt ? `Updated ${updatedAt.toLocaleTimeString()} · refreshes every 30 s` : "Loading…"}</span>
         <button
           onClick={load}
-          className="rounded-lg border border-slate-700 px-2.5 py-1 text-slate-300 hover:bg-slate-800"
+          className="rounded-full border border-line px-3 py-1 text-ink-soft hover:bg-black/5"
         >
           Refresh
         </button>
       </div>
 
       {error && (
-        <p className="mt-6 rounded-xl border border-rose-900 bg-rose-950/40 p-3 text-sm text-rose-200">
+        <p className="mt-6 rounded-xl border border-risky/30 bg-risky/5 p-3 text-sm text-ink">
           Could not load threat memory: {error}
         </p>
       )}
 
       {data && data.threats.length === 0 && (
-        <p className="mt-6 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-400">
+        <p className="mt-6 rounded-[var(--radius-card)] border border-line bg-surface p-4 text-sm text-ink-soft">
           No threats recorded yet. Run a wallet action through Sentinel and any attacker it finds will appear here.
         </p>
       )}
