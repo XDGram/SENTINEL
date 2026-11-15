@@ -378,7 +378,7 @@ export async function createThreat(input: {
 }): Promise<Threat> {
   const refresh = async (existing: Threat) => {
     // Refresh the packet while it has not been submitted yet.
-    if (existing.status === "discovered" && input.reppoPacket) {
+    if ((existing.status === "discovered" || existing.status === "rejected" || existing.status === "failed") && input.reppoPacket) {
       return (
         (await updateThreat(existing.id, {
           reppoPacket: input.reppoPacket,

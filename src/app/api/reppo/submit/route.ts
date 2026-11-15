@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { reppoSubmit } from "@/lib/reppo";
-import { countSubmissions, findThreatByFingerprint, setStatus } from "@/lib/store";
+import { countSubmissions, findThreatByFingerprint, listThreats, setStatus } from "@/lib/store";
 import type { SubmitRequest, SubmitResponse } from "@/lib/types";
 import { clientKey, rateLimit } from "@/lib/guard";
 
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 
 // Each Reppo evaluation costs credits, and the demo is public.
 const MAX_SUBMISSIONS = Number(process.env.REPPO_MAX_SUBMISSIONS ?? 6);
+const MAX_ATTEMPTS_PER_THREAT = 2;
 
 export async function POST(req: Request) {
   const wait = rateLimit(`submit:${clientKey(req)}`, 5, 60_000);
@@ -23,12 +24,15 @@ export async function POST(req: Request) {
   if (!threat || !threat.reppoPacket) {
     return NextResponse.json({ error: "Unknown threat. Analyse the action first." }, { status: 404 });
   }
-  if (threat.status !== "discovered" && threat.status !== "failed") {
+  // A rejected threat may be resubmitted once (after re-analysis refreshed its packet).
+  const attempts = (await listThreats()).events.filter((e) => e.threatId === threat.id && e.kind === "submitted").length;
+  const resubmittable = threat.status === "rejected" && attempts < MAX_ATTEMPTS_PER_THREAT;
+  if (threat.status !== "discovered" && threat.status !== "failed" && !resubmittable) {
     const res: SubmitResponse = {
       threat,
       evalId: threat.reppoEvalId,
       status: threat.status === "submitted" ? "PENDING" : "SETTLED",
-      message: "Already submitted to Reppo.",
+      message: threat.status === "rejected" ? "Reppo rejected this twice; it stays out of threat memory." : "Already submitted to Reppo.",
     };
     return NextResponse.json(res);
   }

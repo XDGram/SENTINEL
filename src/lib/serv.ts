@@ -12,7 +12,7 @@ import { LANGUAGES } from "./types";
 import { intelForPrompt } from "./intel";
 
 export const SERV_BASE_URL = "https://inference-api.openserv.ai/v1";
-export const SERV_MODEL = process.env.SERV_MODEL || "gpt-5.4-mini";
+export const SERV_MODEL = process.env.SERV_MODEL || "gpt-6-luna";
 
 let client: OpenAI | null = null;
 export function servClient(): OpenAI | null {

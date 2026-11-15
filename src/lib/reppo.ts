@@ -99,6 +99,8 @@ function clampBytes(s: string, maxBytes: number): string {
 }
 
 interface PacketShape {
+  simulationDisclosure?: string;
+  sourceIndependence?: { independentFlaggingSources?: string[]; caveats?: string[] };
   action?: Record<string, unknown>;
   sentinelAnalysis?: {
     verdict?: string;
@@ -107,6 +109,7 @@ interface PacketShape {
     headline?: string;
     explanation?: string;
     reasoningSteps?: string[];
+    safeFix?: string;
   };
 }
 
@@ -138,6 +141,14 @@ function buildInput(threat: Threat): string {
     `Explanation: ${a.explanation ?? ""}`,
     "Reasoning trace:",
     ...(a.reasoningSteps?.length ? a.reasoningSteps.map((s) => `  ${s}`) : ["  (none recorded)"]),
+    `Recommended safe action: ${a.safeFix ?? "Cancel the request; do not sign or send."}`,
+    "",
+    "DISCLOSURE",
+    packet.simulationDisclosure ?? "This scenario comes from Sentinel's demo simulator.",
+    "",
+    "SOURCE INDEPENDENCE AND CAVEATS",
+    `Independent lines of external evidence: ${packet.sourceIndependence?.independentFlaggingSources?.join(", ") || "none"}`,
+    ...(packet.sourceIndependence?.caveats?.length ? packet.sourceIndependence.caveats.map((c) => `- ${c}`) : ["- none"]),
     "",
     "EVIDENCE PACKET THE ANALYSIS RESTS ON (built server-side, JSON)",
   ].join("\n");

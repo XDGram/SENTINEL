@@ -75,6 +75,33 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
   const intel = await gatherIntel(req.action, wallet, findings);
   const intelEvidence = intelToEvidence(intel);
 
+  // Nothing to reason about: a saved contact, no rule findings, no source flags.
+  // Answer deterministically and save the SERV call.
+  const isContact = wallet.contacts.find((c) => c.address.toLowerCase() === req.action.to.toLowerCase());
+  if (isContact && findings.length === 0 && intel.flaggedBy.length === 0 && !req.action.dapp) {
+    return {
+      verdict: "safe",
+      attackType: null,
+      confidence: 0.9,
+      headline: `Safe: this is ${isContact.name}'s saved address.`,
+      explanation: `You are sending to ${isContact.name}, exactly as saved in your contacts. No warning signs were found and no scam database lists this address.`,
+      steps: [
+        `Recipient matches saved contact "${isContact.name}" character for character.`,
+        "Rule engine: no lookalike address, approval or signature risk.",
+        "No external source flags this address.",
+        "No AI reasoning needed for a clean payment to a saved contact.",
+      ],
+      evidence: [{ id: "c1", source: "rules", claim: `Matches your saved contact ${isContact.name}.`, detail: req.action.to }],
+      fix: null,
+      fingerprint: null,
+      servUsed: false,
+      language: req.language,
+      shouldSubmitToReppo: false,
+      intel,
+      latencyMs: Date.now() - started,
+    };
+  }
+
   // 4. SERV Reasoning
   const cacheKey = JSON.stringify([req.walletId, req.action, intel.flaggedBy, findings.map((f) => f.indicator + f.severity)]);
   let serv = servCache.get(cacheKey) ?? null;
@@ -89,6 +116,11 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
   }
 
   const base = serv ?? fallback(findings, intel);
+  // Calibrate: don't claim near-certainty unless the rules are conclusive or
+  // two genuinely independent sources agree.
+  const independent = independentSources(intel);
+  const cap = (top?.severity === "high" || independent.length >= 2) ? 0.95 : 0.85;
+  base.confidence = Math.min(base.confidence, cap);
   const analysis: Analysis = {
     ...base,
     evidence: [...ruleEvidence, ...intelEvidence],
@@ -142,12 +174,43 @@ function intelToEvidence(intel: IntelBundle): Evidence[] {
   }));
 }
 
+/** Flagging sources after merging ones that share upstream data (GoPlus draws on ScamSniffer). */
+function independentSources(intel: IntelBundle): string[] {
+  const flagged = intel.reports.filter((r) => r.verdict === "malicious" || r.verdict === "suspicious");
+  // If GoPlus says any of its data comes from ScamSniffer, treat all GoPlus flags
+  // in this bundle as the same line of evidence as ScamSniffer.
+  const goplusUsesSS = intel.reports.some((r) => r.source === "goplus" && r.upstream?.some((u) => /scamsniffer/i.test(u)));
+  const groups = new Set<string>();
+  for (const r of flagged) {
+    if (r.source === "web") continue;
+    groups.add(r.source === "goplus" && goplusUsesSS ? "scamsniffer" : r.source);
+  }
+  return [...groups];
+}
+
+/** Honest caveats Reppo's evaluators should see next to the conclusion. */
+function caveatsFor(intel: IntelBundle): string[] {
+  const out: string[] = [];
+  const gp = intel.reports.find((r) => r.source === "goplus" && r.upstream?.some((u) => /scamsniffer/i.test(u)));
+  if (gp && intel.flaggedBy.includes("scamsniffer")) {
+    out.push(`GoPlus lists ${gp.upstream!.join(", ")} as its data sources, so the GoPlus and ScamSniffer flags are not fully independent; they count as one line of evidence.`);
+  }
+  for (const r of intel.reports) {
+    if (r.source !== "web" && (r.verdict === "unknown" || r.verdict === "clean")) {
+      out.push(`${r.sourceName} has no malicious entry for ${r.indicator} (${r.verdict}). Absence from one list is not evidence of safety, but it is not corroboration either.`);
+    }
+  }
+  for (const u of intel.unavailable) out.push(`Source not consulted: ${u.source} (${u.reason})`);
+  return out;
+}
+
 /** The evidence packet Reppo evaluates: SERV's trace, rule evidence and external sources. */
 function buildReppoPacket(req: AnalyzeRequest, analysis: Analysis, findings: RuleFinding[], intel: IntelBundle): string {
   const a = req.action;
   return JSON.stringify(
     {
-      note: "Wallet scenario from the Sentinel demo simulator. The attacker indicators are checked against real public sources.",
+      simulationDisclosure:
+        "The victim wallet, its balance, history and the request itself are simulated by Sentinel's demo. The attacker indicators (spender address and website) are real entries in public scam databases, and every source lookup and the SERV analysis were live calls.",
       action: {
         kind: a.kind,
         chain: a.chain,
@@ -165,7 +228,12 @@ function buildReppoPacket(req: AnalyzeRequest, analysis: Analysis, findings: Rul
         headline: analysis.headline,
         explanation: analysis.explanation,
         reasoningSteps: analysis.steps,
+        safeFix: analysis.fix ? `${analysis.fix.label}: ${analysis.fix.detail}` : "Cancel the request; do not sign or send.",
         model: analysis.servModel ?? "rules-only",
+      },
+      sourceIndependence: {
+        independentFlaggingSources: independentSources(intel),
+        caveats: caveatsFor(intel),
       },
       ruleEvidence: findings.map((f) => ({
         severity: f.severity,
