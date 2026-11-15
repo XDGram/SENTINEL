@@ -20,6 +20,16 @@ import { useVoice } from "./VoiceProvider";
  *  asked again on the next page while someone who ignored it is left alone. */
 const TOUR_KEY = "watchdog:intro-tour";
 
+/**
+ * Which introductions have already run in THIS page load.
+ *
+ * Deliberately a module variable rather than storage: a refresh creates a new
+ * JavaScript context and clears it, so reloading the site greets you again,
+ * while clicking back to a page you have already heard in the same session
+ * stays quiet.
+ */
+const playedThisLoad = new Set<string>();
+
 type Phase = "hidden" | "offered" | "playing";
 
 export interface PageIntroProps {
@@ -27,7 +37,8 @@ export interface PageIntroProps {
   src: string;
   /** Rounded length, shown on the button so nobody is ambushed. */
   seconds: number;
-  /** Per-page key, so hearing one page does not silence the others. */
+  /** Per-page key, so hearing one page does not silence the others within
+   *  the same page load. */
   seenKey: string;
   label?: string;
   /** Seconds at which the mute control should light up, if this clip names it. */
@@ -47,11 +58,7 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
   const finish = useCallback(() => {
     setPhase("hidden");
     voice?.setMuteHighlight(false);
-    try {
-      window.localStorage.setItem(seenKey, "1");
-    } catch {
-      // Blocked storage only means it may offer again next visit.
-    }
+    playedThisLoad.add(seenKey);
   }, [voice, seenKey]);
 
   const attempt = useCallback(async (): Promise<boolean> => {
@@ -88,14 +95,8 @@ export function PageIntro({ src, seconds, seenKey, label = "Hear how Watchdog wo
   }, [finish]);
 
   useEffect(() => {
-    let seen = false;
-    try {
-      seen = window.localStorage.getItem(seenKey) === "1";
-    } catch {
-      // Treat unreadable storage as a first visit.
-    }
     const forced = new URLSearchParams(window.location.search).get("intro") === "1";
-    if (seen && !forced) return;
+    if (playedThisLoad.has(seenKey) && !forced) return;
     if (voice?.muted) return;
 
     setPhase("offered");
