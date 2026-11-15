@@ -1,7 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  MAX_BREAKDOWN_CHARS,
   MAX_SPEECH_CHARS,
+  composeBreakdownSpeech,
   clampSpeech,
   composeAnswerSpeech,
   composeVerdictSpeech,
@@ -109,4 +111,42 @@ test("a verdict never exceeds the synthesis budget", () => {
 test("an answer is sanitised and clamped", () => {
   const out = composeAnswerSpeech("Revoke it at 0x43412801d29861ecc4c4d86e5becfd16af86a67b [S1].");
   assert.equal(out, "Revoke it at this address.");
+});
+
+// ---- The spoken breakdown of a finding ----
+
+test("a breakdown walks through action, problem, sources and fix", () => {
+  const out = composeBreakdownSpeech({
+    action: "You were about to sign a permission letting an unknown address spend your USDT on usdt-rewards.xyz.",
+    headline: "Don't sign this unlimited USDT permission",
+    explanation: "This signature would let an unfamiliar address spend your USDT [S1].",
+    flaggedBy: ["GoPlus Security", "ScamSniffer"],
+    fix: "Close the site. Real rewards never need a spending permission",
+  });
+  assert.ok(out.startsWith("Here is what you were about to do."));
+  assert.ok(out.includes("GoPlus Security and ScamSniffer all report this as malicious."));
+  assert.ok(out.includes("What to do:"));
+  assert.ok(!out.includes("[S1]"), "citation tags must not be read aloud");
+  assert.ok(out.length <= MAX_BREAKDOWN_CHARS);
+});
+
+test("a single flagging source is phrased in the singular", () => {
+  const out = composeBreakdownSpeech({ headline: "Flagged", flaggedBy: ["ScamSniffer"] });
+  assert.ok(out.includes("ScamSniffer reports this as malicious."));
+  assert.ok(!out.includes("all report"));
+});
+
+test("a breakdown with nothing flagged makes no claim about sources", () => {
+  const out = composeBreakdownSpeech({ headline: "Nothing found", explanation: "No source lists this." });
+  assert.ok(!/report this as malicious/.test(out));
+});
+
+test("a breakdown stays within the longer synthesis budget", () => {
+  const out = composeBreakdownSpeech({
+    action: "A".repeat(400),
+    headline: "B".repeat(400),
+    explanation: "C".repeat(400),
+    fix: "D".repeat(400),
+  });
+  assert.ok(out.length <= MAX_BREAKDOWN_CHARS + 1, `length was ${out.length}`);
 });

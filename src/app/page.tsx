@@ -8,12 +8,11 @@ import { Threats } from "@/components/home/Threats";
 import { HowItWorksStory } from "@/components/home/HowItWorksStory";
 import { LearningLoop } from "@/components/home/LearningLoop";
 import { ProofStrip } from "@/components/home/ProofStrip";
-import { IntroBar, IntroButton, IntroDismiss } from "@/components/voice";
+import { PageIntro } from "@/components/voice";
 
 export default function Home() {
   return (
     <main>
-      <IntroBar />
       {/* Hero */}
       <section className="pt-16 pb-14 sm:pt-24">
         {/* Centred, both lines the same weight and colour: the tagline reads as
@@ -35,10 +34,13 @@ export default function Home() {
           {/* The press that lets the browser play audio at all. Sits in the
               reading path, between the sub-line and the input box. */}
           <Reveal delay={0.85}>
-            <div className="mt-7 flex items-center justify-center gap-1">
-              <IntroButton />
-              <IntroDismiss />
-            </div>
+            <PageIntro
+              src="/intro-watchdog.mp3"
+              seconds={24}
+              seenKey="watchdog:intro-seen"
+              muteCueS={21}
+              className="mt-7"
+            />
           </Reveal>
           <div className="mt-10 text-left">
             <AskBox />

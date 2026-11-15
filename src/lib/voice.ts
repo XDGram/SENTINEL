@@ -10,7 +10,7 @@
 // Measured: ~10 s and 132 credits for 118 characters.
 
 import "server-only";
-import { MAX_SPEECH_CHARS, clampSpeech, sanitiseSpeech } from "./speech-text";
+import { MAX_BREAKDOWN_CHARS, MAX_SPEECH_CHARS, clampSpeech, sanitiseSpeech } from "./speech-text";
 
 export const AI33_BASE = "https://api.ai33.pro";
 
@@ -127,8 +127,8 @@ interface TaskResponse {
 }
 
 /** Normalise the text the same way for the cache key and for synthesis. */
-export function prepareSpeech(raw: string): string {
-  return clampSpeech(sanitiseSpeech(raw), MAX_SPEECH_CHARS);
+export function prepareSpeech(raw: string, long = false): string {
+  return clampSpeech(sanitiseSpeech(raw), long ? MAX_BREAKDOWN_CHARS : MAX_SPEECH_CHARS);
 }
 
 /**
@@ -136,11 +136,11 @@ export function prepareSpeech(raw: string): string {
  * the caller can report; the browser falls back to its own speech engine so a
  * failure here is never silence.
  */
-export async function speak(raw: string, opts: { speed?: number } = {}): Promise<{ ok: true; result: SpeakResult } | { ok: false; error: SpeakFailure }> {
+export async function speak(raw: string, opts: { speed?: number; long?: boolean } = {}): Promise<{ ok: true; result: SpeakResult } | { ok: false; error: SpeakFailure }> {
   const started = Date.now();
   if (!voiceAvailable()) return { ok: false, error: { reason: "not-configured" } };
 
-  const text = prepareSpeech(raw);
+  const text = prepareSpeech(raw, opts.long);
   if (!text) return { ok: false, error: { reason: "empty-text" } };
 
   // ai33pro accepts 0.5–1.5.

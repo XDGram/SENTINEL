@@ -14,6 +14,27 @@ import {
   ResultSkeleton,
   VerdictHeader,
 } from "@/components/sentinel";
+import { ExplainButton } from "@/components/voice";
+import { composeBreakdownSpeech } from "@/lib/speech-text";
+import type { IntelSourceId } from "@/lib/types";
+
+/** Human names for the sources, so the voice does not say "goplus". */
+const SOURCE_NAMES: Record<IntelSourceId, string> = {
+  goplus: "GoPlus Security",
+  scamsniffer: "ScamSniffer",
+  metamask: "the MetaMask phishing list",
+  web: "community reports",
+};
+const sourceName = (s: IntelSourceId) => SOURCE_NAMES[s] ?? s;
+
+/** One plain sentence describing the pending request. */
+function describeAction(a: WalletAction): string {
+  const site = a.dapp ? ` on ${(() => { try { return new URL(a.dapp.url).hostname; } catch { return a.dapp.name; } })()}` : "";
+  if (a.kind === "send") return `send ${a.amount} ${a.token.symbol} to an address you copied`;
+  if (a.kind === "approve") return `approve ${a.amount === "unlimited" ? "unlimited" : a.amount} ${a.token.symbol} for a contract${site}`;
+  if (a.kind === "permit") return `sign a permission letting an unknown address spend your ${a.token.symbol}${site}`;
+  return `connect your wallet${site}`;
+}
 
 export interface PanelState {
   walletId: "A" | "B";
@@ -85,6 +106,21 @@ export function AnalysisPanel({
           />
 
           <MemoryCatchBanner analysis={a} />
+
+          {/* The verdict already reads its headline aloud. This talks the whole
+              finding through for someone who wants it broken down. */}
+          {a.verdict !== "safe" && (
+            <ExplainButton
+              id={`explain:${panel.action.id}:${a.fingerprint ?? a.headline}`}
+              text={composeBreakdownSpeech({
+                action: `You were about to ${describeAction(panel.action)}.`,
+                headline: a.headline,
+                explanation: a.explanation,
+                flaggedBy: (a.intel?.flaggedBy ?? []).map(sourceName),
+                fix: a.fix ? `${a.fix.label}. ${a.fix.detail}` : undefined,
+              })}
+            />
+          )}
 
           {a.verdict !== "safe" ? (
             <div className="flex flex-wrap gap-2">

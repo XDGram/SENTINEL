@@ -25,6 +25,12 @@ export interface VoiceApi {
   setMuteHighlight: (v: boolean) => void;
   speak: (text: string, opts?: { id?: string; source?: string; auto?: boolean }) => Promise<void>;
   stop: () => void;
+  /**
+   * Register something that plays its own audio, such as a page introduction,
+   * so anything Watchdog says next silences it first. Returns an unregister
+   * function. Without this, a verdict would talk over a running introduction.
+   */
+  registerInterruptible: (stop: () => void) => () => void;
 }
 
 const VoiceContext = createContext<VoiceApi | null>(null);
@@ -49,6 +55,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   const [muteHighlight, setMuteHighlight] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const interruptiblesRef = useRef<Set<() => void>>(new Set());
   // Guards double-speaking when React re-renders a result.
   const spokenRef = useRef<Set<string>>(new Set());
   const requestRef = useRef(0);
@@ -81,6 +88,17 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       setState("idle");
       setActiveId(null);
     }
+  }, []);
+
+  const registerInterruptible = useCallback((fn: () => void) => {
+    interruptiblesRef.current.add(fn);
+    return () => {
+      interruptiblesRef.current.delete(fn);
+    };
+  }, []);
+
+  const silenceOthers = useCallback(() => {
+    for (const fn of interruptiblesRef.current) fn();
   }, []);
 
   const stop = useCallback(() => {
@@ -129,6 +147,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       }
 
       const ticket = ++requestRef.current;
+      // A page introduction yields to anything the user actually asked for.
+      silenceOthers();
       audioRef.current?.pause();
       window.speechSynthesis?.cancel();
       setState("preparing");
@@ -182,7 +202,7 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
         setActiveId(null);
       }
     },
-    [browserFallback, muted],
+    [browserFallback, muted, silenceOthers],
   );
 
   useEffect(
@@ -194,8 +214,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<VoiceApi>(
-    () => ({ muted, setMuted, state, activeId, needsGesture, muteHighlight, setMuteHighlight, speak, stop }),
-    [muted, setMuted, state, activeId, needsGesture, muteHighlight, speak, stop],
+    () => ({ muted, setMuted, state, activeId, needsGesture, muteHighlight, setMuteHighlight, speak, stop, registerInterruptible }),
+    [muted, setMuted, state, activeId, needsGesture, muteHighlight, speak, stop, registerInterruptible],
   );
 
   return <VoiceContext.Provider value={value}>{children}</VoiceContext.Provider>;

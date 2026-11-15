@@ -11,7 +11,7 @@ const RATE_LIMIT = Number(process.env.VOICE_RATE_LIMIT ?? 10);
 const RATE_WINDOW_MS = 60_000;
 
 /** Which part of the UI asked, for logging only. */
-const SOURCES = ["verdict", "answer", "check", "scan", "manual"] as const;
+const SOURCES = ["verdict", "answer", "check", "scan", "breakdown", "manual"] as const;
 
 /**
  * Read a short piece of Watchdog's output aloud.
@@ -44,7 +44,8 @@ export async function POST(req: Request) {
   const source = typeof body?.source === "string" && (SOURCES as readonly string[]).includes(body.source) ? body.source : "manual";
   const speed = typeof body?.speed === "number" ? body.speed : undefined;
 
-  const out = await speak(text, { speed });
+  // A breakdown was explicitly asked for, so it may run longer.
+  const out = await speak(text, { speed, long: source === "breakdown" });
 
   if (!out.ok) {
     const status = out.error.reason === "budget" ? 429 : out.error.reason === "timeout" ? 504 : 502;

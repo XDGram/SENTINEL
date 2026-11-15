@@ -8,6 +8,9 @@
 /** Hard ceiling on what is sent for synthesis: ~10 s of audio, ~360 credits. */
 export const MAX_SPEECH_CHARS = 320;
 
+/** A requested breakdown may run longer, since the user asked to hear it out. */
+export const MAX_BREAKDOWN_CHARS = 700;
+
 /** Longest input accepted before trimming, to reject obvious abuse early. */
 export const MAX_SPEECH_INPUT = 2000;
 
@@ -110,4 +113,44 @@ function ensureStop(s: string): string {
 /** Speakable form of a free-text answer, such as a reply from /api/ask. */
 export function composeAnswerSpeech(answer: string): string {
   return clampSpeech(sanitiseSpeech(answer));
+}
+
+export interface BreakdownSource {
+  headline?: string;
+  explanation?: string;
+  /** What the user was about to do, in plain words. */
+  action?: string;
+  /** The sources that flagged it, e.g. ["GoPlus", "ScamSniffer"]. */
+  flaggedBy?: string[];
+  /** The safe action Watchdog offers. */
+  fix?: string;
+}
+
+/**
+ * The longer, spoken breakdown of a finding: what you were about to do, what
+ * is wrong with it, who else says so, and what to do instead. Only produced on
+ * request, because it takes noticeably longer to synthesise than a headline.
+ */
+export function composeBreakdownSpeech(input: BreakdownSource): string {
+  const parts: string[] = [];
+  const headline = sanitiseSpeech(input.headline ?? "");
+  const explanation = sanitiseSpeech(input.explanation ?? "");
+  const action = sanitiseSpeech(input.action ?? "");
+  const fix = sanitiseSpeech(input.fix ?? "");
+  const flagged = (input.flaggedBy ?? []).filter(Boolean);
+
+  if (action) parts.push(`Here is what you were about to do. ${ensureStop(action)}`);
+  if (headline) parts.push(ensureStop(headline));
+  if (explanation) parts.push(ensureStop(explanation));
+
+  if (flagged.length === 1) {
+    parts.push(`${flagged[0]} reports this as malicious.`);
+  } else if (flagged.length > 1) {
+    const last = flagged[flagged.length - 1];
+    parts.push(`${flagged.slice(0, -1).join(", ")} and ${last} all report this as malicious.`);
+  }
+
+  if (fix) parts.push(`What to do: ${ensureStop(fix)}`);
+
+  return clampSpeech(parts.join(" ").replace(/\s+/g, " ").trim(), MAX_BREAKDOWN_CHARS);
 }

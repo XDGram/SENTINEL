@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import { ToastProvider } from "@/components/ui/toast";
-import { IntroProvider, VoiceProvider } from "@/components/voice";
+import { VoiceProvider } from "@/components/voice";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(
@@ -20,9 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={client}>
       <MotionConfig reducedMotion="never">
         <ToastProvider>
-          <VoiceProvider>
-            <IntroProvider>{children}</IntroProvider>
-          </VoiceProvider>
+          <VoiceProvider>{children}</VoiceProvider>
         </ToastProvider>
       </MotionConfig>
     </QueryClientProvider>

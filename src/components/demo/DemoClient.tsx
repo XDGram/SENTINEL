@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 import { MonoLabel } from "@/components/ui";
 import { PhoneWallet, type PhoneState } from "./PhoneWallet";
 import { AnalysisPanel, type PanelState } from "./AnalysisPanel";
+import { PageIntro } from "@/components/voice";
 
 type Id = "A" | "B";
 
@@ -197,6 +198,15 @@ export function DemoClient() {
           <h1 className="font-display mt-3 text-[40px] leading-[1.05] sm:text-[56px]">
             Two wallets. <span className="text-ink/75">One shared memory.</span>
           </h1>
+          {/* Spoken walkthrough: what is simulated, what is real, and how SERV
+              and Reppo turn one person's close call into everyone's block. */}
+          <PageIntro
+            src="/intro-demo.mp3"
+            seconds={39}
+            seenKey="watchdog:intro-demo-seen"
+            label="Hear how this demo works"
+            className="mt-5 justify-start"
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Live ok={h?.serv} label={h ? `SERV · ${h.servModel}` : "SERV"} />

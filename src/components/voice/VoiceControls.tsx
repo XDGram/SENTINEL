@@ -5,7 +5,7 @@
 // colour. The animated bars run regardless of the reduced-motion setting, in
 // keeping with the app's ambient motion.
 
-import { Loader2, Volume2, VolumeX } from "lucide-react";
+import { Loader2, MessageCircle, Volume2, VolumeX } from "lucide-react";
 import { useEffect } from "react";
 import { cn } from "@/lib/cn";
 import { useVoice } from "./VoiceProvider";
@@ -115,4 +115,52 @@ export function useAutoSpeak(text: string, enabled: boolean, opts: { id?: string
     // Re-running on every render would re-read the same verdict; the `auto`
     // flag in the provider also guards against that.
   }, [voice, enabled, text, id, opts.source]);
+}
+
+/**
+ * Asks Watchdog to talk a finding through: what you were about to do, what is
+ * wrong, who else reports it, and what to do instead. Longer than the headline
+ * the verdict reads automatically, so it is synthesised on request and takes a
+ * few seconds; the button says so rather than appearing to hang.
+ */
+export function ExplainButton({
+  text,
+  id,
+  dark,
+  className,
+}: {
+  text: string;
+  id?: string;
+  dark?: boolean;
+  className?: string;
+}) {
+  const voice = useVoice();
+  if (!voice || !text.trim()) return null;
+
+  const clipId = id ?? `explain:${text.slice(0, 48)}`;
+  const isActive = voice.activeId === clipId;
+  const preparing = isActive && voice.state === "preparing";
+  const playing = isActive && voice.state === "playing";
+
+  return (
+    <button
+      type="button"
+      onClick={() => (playing || preparing ? voice.stop() : voice.speak(text, { id: clipId, source: "breakdown" }))}
+      aria-label={playing ? "Stop the explanation" : "Explain this finding out loud"}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
+        dark ? "bg-white/10 text-white hover:bg-white/15" : "bg-ink text-white hover:opacity-85",
+        className,
+      )}
+    >
+      {preparing ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+      ) : playing ? (
+        <SpeakingBars dark={!dark} />
+      ) : (
+        <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+      )}
+      {preparing ? "Preparing the explanation…" : playing ? "Stop" : "Explain this to me"}
+    </button>
+  );
 }

@@ -7,6 +7,18 @@ import { cn } from "@/lib/cn";
 import { MonoLabel, Skeleton } from "@/components/ui";
 import { RingsLoader } from "@/components/ui/elements";
 import { plain, VerdictHeader } from "./verdict";
+import { ExplainButton } from "@/components/voice";
+import { composeBreakdownSpeech } from "@/lib/speech-text";
+import type { IntelSourceId } from "@/lib/types";
+
+/** Human names for the sources, so the voice does not say "goplus". */
+const SOURCE_NAMES: Record<string, string> = {
+  goplus: "GoPlus Security",
+  scamsniffer: "ScamSniffer",
+  metamask: "the MetaMask phishing list",
+  web: "community reports",
+};
+const sourceName = (s: IntelSourceId | string) => SOURCE_NAMES[s] ?? String(s);
 import { EvidenceList, fromReports } from "./EvidenceList";
 
 export function CheckResult({ input }: { input: string }) {
@@ -36,6 +48,20 @@ export function CheckResult({ input }: { input: string }) {
         explanation={r?.explanation ?? d.honesty}
         confidence={r?.confidence}
       />
+
+      {/* A real check on a real indicator: offer the full spoken breakdown. */}
+      {verdict !== "safe" && (
+        <ExplainButton
+          id={`explain:${d.normalised.kind}:${d.normalised.value}`}
+          text={composeBreakdownSpeech({
+            action: `You asked Watchdog to check ${d.normalised.kind === "domain" ? `the website ${d.normalised.value}` : "this address"}.`,
+            headline: r?.headline,
+            explanation: r?.explanation ?? d.honesty,
+            flaggedBy: (d.flaggedBy ?? []).map(sourceName),
+            fix: r?.whatToDo,
+          })}
+        />
+      )}
 
       {r?.whatToDo && (
         <div className={cn("rounded-xl p-4 text-sm leading-6", verdict === "safe" ? "bg-safe/10" : verdict === "risky" ? "bg-risky/10" : "bg-uncertain/10")}>
