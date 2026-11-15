@@ -1,4 +1,5 @@
 import { Container, MonoLabel } from "@/components/ui";
+import { Reveal, WordsReveal } from "@/components/ui/Reveal";
 import { ArrowLink, CtaLink } from "@/components/ui/elements";
 import { AskBox } from "@/components/home/AskBox";
 import { ThreatField } from "@/components/home/ThreatField";
@@ -16,14 +17,16 @@ export default function Home() {
         <Container className="text-center">
           <MonoLabel className="text-ink-soft">Wallet safety agent · SERV Reasoning × Reppo</MonoLabel>
           <h1 className="font-display mx-auto mt-5 max-w-3xl text-[44px] leading-[1.04] text-ink sm:text-[68px]">
-            Know before you sign.
+            <WordsReveal text="Know before you sign." />
             <br />
-            <span className="text-ink/75 italic">Wallet safety that learns.</span>
+            <WordsReveal text="Wallet safety that learns." className="text-ink/75 italic" delay={0.35} />
           </h1>
+          <Reveal delay={0.7}>
           <p className="mx-auto mt-5 max-w-xl text-[15px] leading-6 text-ink-soft">
             Watchdog explains risky crypto transactions in plain English, checks real scam databases, and gets smarter every
             time an attack is verified.
           </p>
+          </Reveal>
           <div className="mt-10 text-left">
             <AskBox />
           </div>
@@ -35,7 +38,7 @@ export default function Home() {
       {/* The problem */}
       <section className="bg-grid-dark bg-deep pt-16 pb-20 text-white sm:pt-20">
         <Container>
-          <div className="grid gap-8 md:grid-cols-[1.3fr_1fr] md:items-end">
+          <Reveal className="grid gap-8 md:grid-cols-[1.3fr_1fr] md:items-end">
             <div>
               <MonoLabel className="text-white/40">[N.01] &gt; What it stops</MonoLabel>
               <h2 className="font-display mt-4 text-[40px] leading-[1.05] sm:text-[56px]">
@@ -48,7 +51,7 @@ export default function Home() {
               Losses rarely come from stolen seed phrases. They come from one signature or one copied address that looked
               fine. Existing warnings speak jargon, so beginners click through them.
             </p>
-          </div>
+          </Reveal>
           <div className="mt-10">
             <SourcesMarquee />
           </div>
@@ -61,13 +64,15 @@ export default function Home() {
       {/* How it works (illustrated) */}
       <section className="py-20 sm:py-28">
         <Container>
-          <div className="mb-12 max-w-2xl">
+          <Reveal className="mb-12 max-w-2xl">
             <MonoLabel className="text-ink-soft">[N.02] &gt; How it works</MonoLabel>
             <h2 className="font-display mt-4 text-[40px] leading-[1.05] text-ink sm:text-[56px]">
               Five seconds between you <span className="text-ink/60 italic">and a drained wallet.</span>
             </h2>
-          </div>
-          <HowItWorksStory />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <HowItWorksStory />
+          </Reveal>
         </Container>
       </section>
 
@@ -75,8 +80,10 @@ export default function Home() {
       <section className="bg-grid-dark bg-deep py-20 text-white sm:py-28">
         <Container>
           <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.1fr]">
-            <LearningLoop />
-            <div>
+            <Reveal>
+              <LearningLoop />
+            </Reveal>
+            <Reveal delay={0.15}>
               <MonoLabel className="text-white/40">[N.03] &gt; Proof of learning</MonoLabel>
               <h2 className="font-display mt-4 text-[40px] leading-[1.05] sm:text-[52px]">
                 It learns from the first attack <span className="text-white/55 italic">and protects the next person.</span>
@@ -88,7 +95,7 @@ export default function Home() {
               <div className="mt-8">
                 <ProofStrip compact />
               </div>
-            </div>
+            </Reveal>
           </div>
         </Container>
       </section>
@@ -96,7 +103,7 @@ export default function Home() {
       {/* CTA */}
       <section className="py-20 sm:py-24">
         <Container>
-          <div className="flex flex-col items-start justify-between gap-8 rounded-[28px] bg-surface p-8 ring-1 ring-line sm:p-12 md:flex-row md:items-center">
+          <Reveal className="flex flex-col items-start justify-between gap-8 rounded-[28px] bg-surface p-8 ring-1 ring-line sm:p-12 md:flex-row md:items-center">
             <div>
               <h2 className="font-display text-[36px] leading-[1.05] text-ink sm:text-[48px]">
                 See it stop an attack.
@@ -107,7 +114,7 @@ export default function Home() {
               <CtaLink href="/demo">Open the demo</CtaLink>
               <ArrowLink href="/dashboard">View dashboard</ArrowLink>
             </div>
-          </div>
+          </Reveal>
         </Container>
       </section>
     </main>
