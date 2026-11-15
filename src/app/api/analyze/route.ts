@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { analyzeAction } from "@/lib/analyze";
 import type { AnalyzeRequest } from "@/lib/types";
+import { clientKey, rateLimit, validateAction } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const wait = rateLimit(`analyze:${clientKey(req)}`, 20, 60_000);
+  if (wait) return NextResponse.json({ error: `Too many requests. Try again in ${wait}s.` }, { status: 429, headers: { "Retry-After": String(wait) } });
   let body: AnalyzeRequest;
   try {
     body = (await req.json()) as AnalyzeRequest;
@@ -14,6 +17,8 @@ export async function POST(req: Request) {
   if (!body?.action || (body.walletId !== "A" && body.walletId !== "B")) {
     return NextResponse.json({ error: "action and walletId are required" }, { status: 400 });
   }
+  const invalid = validateAction(body.action);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   try {
     // English only for now; other languages come later.
     const analysis = await analyzeAction({ ...body, language: "en" });

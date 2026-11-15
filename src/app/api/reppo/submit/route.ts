@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { reppoSubmit } from "@/lib/reppo";
 import { countSubmissions, findThreatByFingerprint, setStatus } from "@/lib/store";
 import type { SubmitRequest, SubmitResponse } from "@/lib/types";
+import { clientKey, rateLimit } from "@/lib/guard";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 const MAX_SUBMISSIONS = Number(process.env.REPPO_MAX_SUBMISSIONS ?? 6);
 
 export async function POST(req: Request) {
+  const wait = rateLimit(`submit:${clientKey(req)}`, 5, 60_000);
+  if (wait) return NextResponse.json({ error: `Too many requests. Try again in ${wait}s.` }, { status: 429 });
   const body = (await req.json().catch(() => null)) as SubmitRequest | null;
   if (!body?.fingerprint) {
     return NextResponse.json({ error: "fingerprint is required" }, { status: 400 });

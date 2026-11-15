@@ -10,9 +10,15 @@ import "server-only";
 import type { Analysis, AnalyzeRequest, AttackType, Evidence, IntelBundle, IntelReport, RuleFinding } from "./types";
 import { fingerprintOf, indicatorsOf, runRules, shortAddr } from "./rules";
 import { initialWallets } from "./sim-data";
-import { servAnalyze, SERV_MODEL } from "./serv";
+import { servAnalyze, servAvailable, SERV_MODEL } from "./serv";
 import { createThreat, findVerifiedThreat, recordCatch } from "./store";
 import { gatherIntel } from "./intel";
+import { takeServBudget } from "./guard";
+import { TtlCache } from "./intel/shared";
+import type { ServAnalysis } from "./serv";
+
+// Same action + same evidence → reuse SERV's answer (saves credits on repeat demos).
+const servCache = new TtlCache<ServAnalysis>(60 * 60_000, 200);
 
 const ATTACK_LABEL: Record<AttackType, string> = {
   "address-poisoning": "address poisoning",
@@ -70,7 +76,17 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
   const intelEvidence = intelToEvidence(intel);
 
   // 4. SERV Reasoning
-  const serv = await servAnalyze({ action: req.action, wallet, findings, intel, language: req.language });
+  const cacheKey = JSON.stringify([req.walletId, req.action, intel.flaggedBy, findings.map((f) => f.indicator + f.severity)]);
+  let serv = servCache.get(cacheKey) ?? null;
+  let servNote: string | null = null;
+  if (!serv && servAvailable()) {
+    if (takeServBudget()) {
+      serv = await servAnalyze({ action: req.action, wallet, findings, intel, language: req.language });
+      if (serv) servCache.set(cacheKey, serv);
+    } else {
+      servNote = "Daily SERV budget reached, so this is a rules + sources result without AI reasoning.";
+    }
+  }
 
   const base = serv ?? fallback(findings, intel);
   const analysis: Analysis = {
@@ -86,7 +102,7 @@ export async function analyzeAction(req: AnalyzeRequest): Promise<Analysis> {
   };
 
   if (!serv) {
-    analysis.steps = ["SERV Reasoning is not connected. This is a rules + sources result without AI reasoning.", ...analysis.steps];
+    analysis.steps = [servNote ?? "SERV Reasoning is not connected. This is a rules + sources result without AI reasoning.", ...analysis.steps];
   }
 
   // New suspicious pattern: remember it as "discovered" (not trusted until Reppo verifies).

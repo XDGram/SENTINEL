@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { servAvailable, SERV_MODEL } from "@/lib/serv";
 import { reppoAvailable } from "@/lib/reppo";
 import { storeKind } from "@/lib/store";
+import { servBudgetUsed } from "@/lib/guard";
+import { webSearchProvider } from "@/lib/intel/web";
 
 export const dynamic = "force-dynamic";
 
@@ -12,5 +14,7 @@ export async function GET() {
     servModel: SERV_MODEL,
     reppo: reppoAvailable(),
     store: storeKind(),
+    webSearch: webSearchProvider() ?? "off",
+    servBudget: servBudgetUsed(),
   });
 }
