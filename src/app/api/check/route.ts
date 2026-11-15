@@ -76,7 +76,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const cacheKey = `${normalised.kind}:${normalised.value}`;
+  // The language is part of the key: without it, asking in French returns the
+  // cached English answer, which is exactly what it looks like when the
+  // language picker appears to do nothing.
+  const cacheKey = `${language}:${normalised.kind}:${normalised.value}`;
   const cached = resultCache.get(cacheKey);
   if (cached) {
     return NextResponse.json({ ...respond(cached), cached: true });

@@ -64,6 +64,8 @@ export async function POST(req: Request) {
 
   // ONE SERV call per scan, never per approval.
   const cacheKey = JSON.stringify([
+    // Language first, so a scan read in French is not served the English one.
+    language,
     scan.address,
     scan.coverage.mode,
     scan.approvals.map((a) => [a.token.symbol, a.spender, a.allowanceRaw, a.risk]),

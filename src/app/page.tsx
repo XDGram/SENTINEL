@@ -9,10 +9,12 @@ import { HowItWorksStory } from "@/components/home/HowItWorksStory";
 import { LearningLoop } from "@/components/home/LearningLoop";
 import { ProofStrip } from "@/components/home/ProofStrip";
 import { PageIntro } from "@/components/voice";
+import { LanguageInvite } from "@/components/site/LanguageInvite";
 
 export default function Home() {
   return (
     <main>
+      <LanguageInvite />
       {/* Hero */}
       <section className="pt-16 pb-14 sm:pt-24">
         {/* Centred, both lines the same weight and colour: the tagline reads as

@@ -336,3 +336,24 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Cinematic scroll: sections soften and lift slightly as they enter and
+   leave the viewport, so scrolling reads as depth rather than a jump cut.
+   Progressive enhancement, and skipped where the browser cannot animate it. */
+@supports (animation-timeline: view()) {
+  @keyframes watchdog-focus {
+    from { opacity: 0; filter: blur(10px); transform: translateY(26px) scale(0.992); }
+    to { opacity: 1; filter: blur(0); transform: none; }
+  }
+  @keyframes watchdog-defocus {
+    from { opacity: 1; filter: blur(0); transform: none; }
+    to { opacity: 0.35; filter: blur(7px); transform: translateY(-16px) scale(0.995); }
+  }
+  main > section {
+    animation:
+      watchdog-focus linear both,
+      watchdog-defocus linear both;
+    animation-timeline: view(), view();
+    animation-range: entry 0% entry 62%, exit 42% exit 100%;
+  }
+}
