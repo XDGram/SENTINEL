@@ -25,6 +25,7 @@ import { MonoLabel, Skeleton } from "@/components/ui";
 import { RingsLoader, Toggle, WalletGlyph } from "@/components/ui/elements";
 import { Spotlight } from "@/components/ui/Spotlight";
 import { WalletScanReport } from "@/components/sentinel";
+import { PageIntro } from "@/components/voice";
 import { Logo } from "@/components/site/Logo";
 
 const SAMPLE = { label: "Sample wallet", address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", note: "vitalik.eth (public)" };
@@ -54,6 +55,16 @@ export function Dashboard() {
         </div>
         <HeaderActions />
       </header>
+
+      {/* Spoken explanation of the sample wallet, scanning your own, and that
+          Watchdog only ever prepares a revoke for you to sign. */}
+      <PageIntro
+        src="/intro-dashboard.mp3"
+        seconds={31}
+        seenKey="watchdog:intro-dashboard"
+        label="Hear what this dashboard shows"
+        className="justify-start pb-1"
+      />
 
       <div className="grid gap-4 lg:grid-cols-[1.55fr_1fr]">
         <WalletCard
