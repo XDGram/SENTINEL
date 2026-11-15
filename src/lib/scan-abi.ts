@@ -45,6 +45,10 @@ export const SELECTOR = {
   approve: "095ea7b3",
   /** aggregate3((address,bool,bytes)[]) */
   aggregate3: "82ad56cb",
+  /** symbol() */
+  symbol: "95d89b41",
+  /** decimals() */
+  decimals: "313ce567",
 } as const;
 
 export const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11";
@@ -124,6 +128,58 @@ export function decodeUint(data: string): bigint | null {
   } catch {
     return null;
   }
+}
+
+/** Calldata for a no-argument view function such as symbol() or decimals(). */
+export function encodeNoArgs(selector: string): string {
+  return `0x${selector}`;
+}
+
+/**
+ * Decode a token symbol. Modern tokens return a dynamic string; several older
+ * ones (MKR among them) declare bytes32 instead, so both are handled. Returns
+ * null rather than guessing when the data is neither.
+ */
+export function decodeTokenString(data: string): string | null {
+  const h = (data || "").replace(/^0x/, "");
+  if (!h || h.length < 64) return null;
+  const clean = (s: string) => {
+    // Keep printable ASCII only: a mis-decoded word otherwise yields control
+    // characters that would be rendered to the user.
+    const out = s.replace(/\u0000+$/g, "").trim();
+    return /^[\x20-\x7E]+$/.test(out) ? out : null;
+  };
+  const hexToUtf8 = (hex: string) => {
+    let s = "";
+    for (let i = 0; i + 1 < hex.length; i += 2) {
+      const c = parseInt(hex.slice(i, i + 2), 16);
+      if (c) s += String.fromCharCode(c);
+    }
+    return s;
+  };
+  // Dynamic string: offset word, length word, then the bytes.
+  try {
+    const offset = Number(BigInt(`0x${h.slice(0, 64)}`));
+    if (offset === 32 && h.length >= 128) {
+      const len = Number(BigInt(`0x${h.slice(64, 128)}`));
+      if (len > 0 && len <= 64 && h.length >= 128 + len * 2) {
+        const got = clean(hexToUtf8(h.slice(128, 128 + len * 2)));
+        if (got) return got;
+      }
+    }
+  } catch {
+    // Fall through to bytes32.
+  }
+  // bytes32: right-padded raw characters.
+  return clean(hexToUtf8(h.slice(0, 64)));
+}
+
+/** Decode a uint8 return value such as decimals(). Null when out of range. */
+export function decodeDecimals(data: string): number | null {
+  const v = decodeUint(data);
+  if (v === null) return null;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 && n <= 36 ? n : null;
 }
 
 // ---- Account code ----
@@ -283,3 +339,107 @@ export function normaliseInput(raw: string): NormalisedInput {
 
   return { kind: "unknown", value: "", raw: original.trim(), note: notes.join("; ") || undefined };
 }
+
+// ---- Approval risk model ----
+//
+// Pure and testable on purpose: this is the calibration that decides what a
+// beginner is warned about, so it is covered by unit tests rather than only by
+// live scans. `import type` is erased at build time, so depending on the
+// GoPlus detail shape here does not pull in a server-only module.
+
+import type { ApprovalSecurity } from "./intel/goplus";
+
+export type ApprovalRisk = "critical" | "high" | "medium" | "low";
+
+export interface RiskInput {
+  unlimited: boolean;
+  knownProtocol: boolean;
+  protocolName?: string;
+  onScamList: boolean;
+  approval: ApprovalSecurity | null;
+  reputationChecked: boolean;
+}
+
+export interface RiskOutcome {
+  risk: ApprovalRisk;
+  reasons: string[];
+  disputed: boolean;
+  note?: string;
+}
+
+/**
+ * Rate one approval.
+ *
+ * An unlimited allowance is NOT by itself a high risk. Almost every real use
+ * of Uniswap, 1inch, CoW, Seaport or Aave leaves an unlimited approval behind,
+ * so treating that alone as high buries the few approvals that can actually
+ * drain a wallet. High and critical need a real signal: a scam-list hit,
+ * GoPlus malicious behaviour, a spender that is not a contract at all, or a
+ * closed-source contract nobody recognises.
+ */
+export function assessRisk(input: RiskInput): RiskOutcome {
+  const { unlimited, knownProtocol, protocolName, onScamList, approval, reputationChecked } = input;
+  const reasons: string[] = [];
+
+  const serious = (approval?.maliciousBehavior ?? []).filter((b) => b !== "blacklist_doubt");
+  const flaggedMalicious = onScamList || serious.length > 0;
+  const trustedByGoPlus = Boolean(approval?.trustList || approval?.tag);
+  const named = Boolean(approval?.contractName);
+  const recognised = knownProtocol || trustedByGoPlus;
+  const spenderIsEOA = approval?.isContract === false;
+  const notOpenSource = approval?.isOpenSource === false;
+  const unrecognised = !recognised && !named;
+
+  // A flagged contract that is also a widely used protocol is a disagreement
+  // between sources, not a settled verdict. Saying "critical" there would tell
+  // a beginner to panic about Uniswap or 0x.
+  const disputed = flaggedMalicious && knownProtocol;
+
+  // Positive signals first, so the reasons read as an assessment.
+  if (protocolName) reasons.push(`The spender is ${protocolName}, a widely used protocol contract.`);
+  else if (approval?.trustList) reasons.push("GoPlus lists this spender on its trusted-contract list.");
+  else if (approval?.tag) reasons.push(`GoPlus tags this spender as ${approval.tag}.`);
+  else if (approval?.contractName) reasons.push(`GoPlus identifies the spender contract as "${approval.contractName}".`);
+
+  if (onScamList) reasons.push("The spender is on ScamSniffer's public scam address blacklist.");
+  if (serious.length) reasons.push(`GoPlus links the spender to ${serious.join(", ").replace(/_/g, " ")}.`);
+  if (disputed) {
+    reasons.push(
+      "Disputed: GoPlus flags this contract, but it is a widely used protocol contract, so the flag is more likely a false positive than proof of theft. Treat it as worth reviewing, not as a confirmed drainer.",
+    );
+  }
+  if (spenderIsEOA && !knownProtocol) {
+    reasons.push("The spender is a plain address, not a contract. Real protocols are contracts, so an approval to one is a strong warning sign.");
+  }
+  if (notOpenSource && unrecognised) {
+    reasons.push("The spender contract is not open source and no source recognises it, so its behaviour cannot be reviewed.");
+  }
+  if (approval?.doubtList && !serious.length) reasons.push("GoPlus lists the spender as a suspected blacklist entry.");
+  if (approval?.riskyApproval && !disputed) reasons.push(`GoPlus: ${approval.riskyApproval}`);
+  if (!reputationChecked) {
+    reasons.push("Spender reputation was not checked for this approval: this scan caps how many lookups it makes.");
+  }
+
+  let risk: ApprovalRisk;
+  if (flaggedMalicious && !knownProtocol) risk = "critical";
+  else if (disputed) risk = "medium";
+  else if (spenderIsEOA) risk = "high";
+  else if (notOpenSource && unrecognised) risk = "high";
+  else if (approval?.doubtList || approval?.riskyApprovalFlagged) risk = "medium";
+  else if (unlimited && !recognised) risk = "medium";
+  else risk = "low";
+
+  let note: string | undefined;
+  if (unlimited) {
+    reasons.push("The allowance is unlimited, so the spender can move the whole balance at any time.");
+    if (!flaggedMalicious) {
+      note = recognised
+        ? "This is a normal approval to a recognised protocol. Nothing here suggests an attack, but you can still consider limiting the amount or revoking it when you are done using the protocol."
+        : "Consider limiting this allowance to the amount you actually need, or revoking it when you are done.";
+    }
+  }
+
+  if (!reasons.length) reasons.push("No source reports this spender, and the allowance is limited.");
+  return { risk, reasons, disputed, note };
+}
+

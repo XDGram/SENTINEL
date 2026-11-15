@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   classifyCode,
+  decodeDecimals,
+  decodeTokenString,
   decodeAggregate3,
   decodeUint,
   encodeAggregate3,
@@ -152,4 +154,35 @@ test("plain words are not treated as domains", () => {
   assert.equal(normaliseInput("is this safe?").kind, "unknown");
   assert.equal(normaliseInput("").kind, "unknown");
   assert.equal(normaliseInput("hello world").kind, "unknown");
+});
+
+// ---- Token metadata decoding ----
+
+test("a dynamic string symbol decodes", () => {
+  const pad = (h: string) => h.replace(/^0x/, "").padStart(64, "0");
+  const padR = (h: string) => h.replace(/^0x/, "").padEnd(64, "0");
+  // offset 32, length 4, "USDC"
+  const data = pad("20") + pad("4") + padR(Buffer.from("USDC", "utf8").toString("hex"));
+  assert.equal(decodeTokenString(data), "USDC");
+});
+
+test("a bytes32 symbol decodes, as older tokens such as MKR return", () => {
+  const data = Buffer.from("MKR", "utf8").toString("hex").padEnd(64, "0");
+  assert.equal(decodeTokenString(data), "MKR");
+});
+
+test("undecodable symbol data yields null rather than control characters", () => {
+  assert.equal(decodeTokenString(""), null);
+  assert.equal(decodeTokenString("0x"), null);
+  // A word of high bytes is not printable ASCII.
+  assert.equal(decodeTokenString("ff".repeat(32)), null);
+});
+
+test("decimals are accepted only in a plausible range", () => {
+  const pad = (n: number) => n.toString(16).padStart(64, "0");
+  assert.equal(decodeDecimals(pad(18)), 18);
+  assert.equal(decodeDecimals(pad(6)), 6);
+  assert.equal(decodeDecimals(pad(0)), 0);
+  assert.equal(decodeDecimals(pad(99)), null);
+  assert.equal(decodeDecimals(""), null);
 });
