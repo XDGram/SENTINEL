@@ -137,9 +137,3 @@ export async function checkDomainLists(host: string): Promise<IntelReport[]> {
     },
   ];
 }
-
-/** Snapshot of list contents, used by the sweep to find newly added entries. */
-export async function snapshot(): Promise<{ domains: Set<string>; addresses: Set<string> }> {
-  const l = await getLists(true);
-  return { domains: new Set([...l.ssDomains, ...l.mmBlacklist]), addresses: l.ssAddresses };
-}
