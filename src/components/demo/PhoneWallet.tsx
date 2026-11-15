@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Loader2, ShieldAlert, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CheckCircle2, ShieldAlert, ShieldCheck, XCircle } from "lucide-react";
+import { RingsLoader } from "@/components/ui/elements";
 import { AnimatePresence, motion } from "motion/react";
 import type { Analysis, Wallet, WalletAction } from "@/lib/types";
 import type { Scenario } from "@/lib/sim-data";
@@ -185,8 +186,8 @@ function Review({
       )}
       <div className="mt-auto pt-5">
         {checking ? (
-          <div className="flex items-center justify-center gap-2 rounded-2xl bg-accent/15 py-3.5 text-sm font-medium text-accent" role="status">
-            <Loader2 className="h-4 w-4 animate-spin" /> Sentinel is checking this…
+          <div className="flex justify-center rounded-2xl bg-accent/10 py-3.5 text-sm font-medium text-accent">
+            <RingsLoader label="Sentinel is checking…" />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2.5">

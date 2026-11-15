@@ -5,6 +5,7 @@ import { useCheck } from "@/lib/client/hooks";
 import { ApiError } from "@/lib/client/api";
 import { cn } from "@/lib/cn";
 import { MonoLabel, Skeleton } from "@/components/ui";
+import { RingsLoader } from "@/components/ui/elements";
 import { plain, VerdictHeader } from "./verdict";
 import { EvidenceList, fromReports } from "./EvidenceList";
 
@@ -94,7 +95,7 @@ export function ResultSkeleton({ label }: { label: string }) {
       </div>
       <Skeleton className="h-16 w-full" />
       <Skeleton className="h-16 w-full" />
-      <p className="label-mono text-ink-soft">{label}</p>
+      <RingsLoader className="label-mono text-ink-soft" label={label} />
     </div>
   );
 }

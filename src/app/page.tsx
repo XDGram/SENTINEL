@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { CtaLink } from "@/components/ui/elements";
 import { Container, MonoLabel } from "@/components/ui";
 import { AskBox } from "@/components/home/AskBox";
 import { ThreatField } from "@/components/home/ThreatField";
@@ -62,12 +61,9 @@ export default function Home() {
               <h3 className="font-display text-3xl">See it stop an attack.</h3>
               <p className="mt-2 text-sm text-white/60">Two simulated wallets, real scam data, real SERV and Reppo calls.</p>
             </div>
-            <Link
-              href="/demo"
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-ink transition-colors hover:bg-white/90"
-            >
-              Open the demo <ArrowRight className="h-4 w-4" />
-            </Link>
+            <CtaLink href="/demo" tone="light">
+              Open the demo
+            </CtaLink>
           </div>
         </Container>
       </section>

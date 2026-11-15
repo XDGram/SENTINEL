@@ -1,13 +1,13 @@
 "use client";
 
-import { BadgeCheck, CircleSlash, Clock, Loader2, Send } from "lucide-react";
+import { BadgeCheck, CircleSlash, Clock, Send } from "lucide-react";
+import { BarLoader, CtaButton } from "@/components/ui/elements";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Threat } from "@/lib/types";
 import { useReppoStatus, useSubmitToReppo } from "@/lib/client/hooks";
 import { ApiError } from "@/lib/client/api";
 import { cn } from "@/lib/cn";
-import { Button } from "@/components/ui";
 
 /** "Verify with Reppo" → pending (real polling) → verified / rejected with the real score. */
 export function ReppoStatusCard({
@@ -54,10 +54,9 @@ export function ReppoStatusCard({
             {submit.isError && (
               <p className="mt-2 text-sm text-risky">{submit.error instanceof ApiError ? submit.error.message : "Submission failed."}</p>
             )}
-            <Button
+            <CtaButton
               className="mt-3"
-              variant={dark ? "light" : "dark"}
-              size="sm"
+              tone={dark ? "light" : "dark"}
               disabled={submit.isPending}
               onClick={() =>
                 submit.mutate(
@@ -66,9 +65,8 @@ export function ReppoStatusCard({
                 )
               }
             >
-              {submit.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-              Verify with Reppo
-            </Button>
+              {submit.isPending ? "Sending to Reppo…" : "Verify with Reppo"}
+            </CtaButton>
           </div>
         </div>
       </div>
@@ -99,6 +97,7 @@ export function ReppoStatusCard({
               Independent evaluators are reviewing Sentinel&apos;s evidence. This usually takes a few minutes; this page checks
               every 15 seconds.
             </p>
+            <BarLoader className={cn("mt-3 w-full max-w-xs", dark ? "text-white" : "text-ink")} />
             {threat?.reppoEvalId && (
               <p className={cn("addr mt-2 text-xs", dark ? "text-white/45" : "text-ink-soft")}>eval {threat.reppoEvalId}</p>
             )}

@@ -206,3 +206,10 @@ Sentinel is **free for users**. Wallets, exchanges and dApps pay for:
 - **Voice:** spoken warnings and questions for users who prefer audio
 - **Browser extension:** check real transactions inside any wallet before signing
 - **Real-time alerts:** notify users when an address or approval they hold is newly flagged
+
+## Credits
+
+UI elements adapted from [Uiverse.io](https://uiverse.io) (MIT License) and restyled for Sentinel:
+glider tabs by Pradeepsaranbishnoi, arrow and expanding-circle buttons by alexmaracinaru,
+expanding round button by vinodjangid07, ring pulse loader by Li-Deheng, sliding bar loader by
+shadowmurphy, rotating glow input by vikas7754. Display type: Newsreader; text: Geist.

@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowUp, Link2, ScanSearch, Sparkles, Wallet } from "lucide-react";
+import { Link2, ScanSearch, Sparkles, Wallet } from "lucide-react";
+import { SendButton } from "@/components/ui/elements";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -55,8 +56,9 @@ export function AskBox() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.5 }}
-        className="mx-auto w-full max-w-[600px] rounded-[var(--radius-box)] bg-ink p-4 text-white shadow-[var(--shadow-box)]"
+        className="uv-glow mx-auto w-full max-w-[600px] rounded-[var(--radius-box)] p-[1.5px] shadow-[var(--shadow-box)]"
       >
+        <div className="rounded-[calc(var(--radius-box)-1.5px)] bg-ink p-4 text-white">
         <label htmlFor="ask" className="sr-only">Ask Sentinel</label>
         <textarea
           id="ask"
@@ -91,13 +93,7 @@ export function AskBox() {
               <Sparkles className="h-3.5 w-3.5" /> Try the demo
             </Link>
           </div>
-          <button
-            onClick={submit}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-ink transition-transform hover:scale-105 active:scale-95"
-            aria-label="Ask Sentinel"
-          >
-            <ArrowUp className="h-4 w-4" />
-          </button>
+          <SendButton onClick={submit} label="Ask Sentinel" />
         </div>
 
         <AnimatePresence>
@@ -115,6 +111,7 @@ export function AskBox() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </motion.div>
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-soft">

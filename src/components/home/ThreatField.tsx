@@ -20,9 +20,7 @@ function rand(seed: number) {
 
 /**
  * Speckled band between the light hero and the dark sections.
- * Static speckle is pre-rendered once; only a small twinkle layer and the
- * threat markers animate. Each pulsing red marker is one real
- * Reppo-verified attacker from /api/feed.
+ * Static speckle is pre-rendered once; only a small twinkle layer animates.
  */
 export function ThreatField() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -41,7 +39,6 @@ export function ThreatField() {
     let h = 0;
     let base: HTMLCanvasElement | null = null;
     let twinkle: { x: number; y: number; r: number; c: string; p: number }[] = [];
-    let threats: { x: number; y: number }[] = [];
 
     const seed = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -89,10 +86,6 @@ export function ThreatField() {
         c: PINK[Math.floor(r() * PINK.length)],
         p: r() * Math.PI * 2,
       }));
-      threats = Array.from({ length: Math.min(verified, 60) }, (_, i) => ({
-        x: w * (0.14 + ((i * 0.618 + 0.21) % 1) * 0.72),
-        y: h * (0.5 + ((i * 0.37 + 0.1) % 1) * 0.3),
-      }));
     };
 
     const draw = (time: number) => {
@@ -105,18 +98,6 @@ export function ThreatField() {
           ctx.fillStyle = d.c;
           ctx.fillRect(d.x, d.y, d.r, d.r);
         }
-      }
-      for (const th of threats) {
-        const pulse = reduce ? 0.5 : (Math.sin(t * 2.4 + th.x) + 1) / 2;
-        ctx.fillStyle = "#d9475b";
-        ctx.globalAlpha = 0.16 + 0.22 * pulse;
-        ctx.beginPath();
-        ctx.arc(th.x, th.y, 7 + pulse * 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.beginPath();
-        ctx.arc(th.x, th.y, 3, 0, Math.PI * 2);
-        ctx.fill();
       }
       ctx.globalAlpha = 1;
     };
@@ -141,13 +122,12 @@ export function ThreatField() {
       ro.disconnect();
       io.disconnect();
     };
-  }, [verified]);
+  }, []);
 
   return (
     <div className="relative bg-[linear-gradient(to_bottom,var(--color-canvas)_0%,var(--color-canvas)_55%,#9aa6a2_80%,var(--color-deep)_100%)]">
       <canvas ref={ref} className="block h-[200px] w-full sm:h-[260px]" aria-hidden />
-      <p className="label-mono absolute right-4 bottom-3 flex items-center gap-2 rounded-full bg-deep/80 px-3 py-1 text-white/80 backdrop-blur sm:right-6">
-        <span className="h-2 w-2 rounded-full bg-risky" aria-hidden />
+      <p className="label-mono absolute right-4 bottom-3 rounded-full bg-deep/80 px-3 py-1 text-white/80 backdrop-blur sm:right-6">
         {feed.isSuccess
           ? `${verified} Reppo-verified attacker${verified === 1 ? "" : "s"} in Sentinel's memory`
           : "Loading threat memory…"}

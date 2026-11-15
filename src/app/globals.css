@@ -3,7 +3,7 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --font-serif: "Newsreader Variable", ui-serif, Georgia, "Times New Roman", serif;
 
   --color-canvas: #e8ebea;
   --color-surface: #f4f6f5;
@@ -57,8 +57,9 @@ body {
 
 .font-display {
   font-family: var(--font-serif);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-weight: 340;
+  font-optical-sizing: auto;
+  letter-spacing: -0.025em;
 }
 
 .label-mono {
@@ -85,6 +86,158 @@ body {
   animation: var(--animate-shimmer);
   border-radius: 8px;
 }
+
+/* ---------------------------------------------------------------------------
+   Elements adapted from Uiverse.io (MIT License), restyled to Sentinel's
+   palette. Credits: Pradeepsaranbishnoi (glider tabs), alexmaracinaru
+   (arrow CTA, expanding-circle link), vinodjangid07 (expanding round
+   button), Li-Deheng (ring pulse loader), shadowmurphy (sliding bar loader),
+   vikas7754 (rotating glow input).
+   ------------------------------------------------------------------------ */
+
+/* Arrow CTA pill: alexmaracinaru/perfect-panda-77 */
+.uv-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s, transform 0.15s;
+  cursor: pointer;
+}
+.uv-cta svg { width: 32px; height: 32px; transition: transform 0.3s ease-in-out; }
+.uv-cta:hover svg { transform: translateX(5px); }
+.uv-cta:active { transform: scale(0.96); }
+.uv-cta[disabled] { opacity: 0.5; pointer-events: none; }
+
+/* Expanding circle link: alexmaracinaru/brown-bobcat-65 */
+.uv-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+.uv-link::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  translate: 0 -50%;
+  width: 42px; height: 42px;
+  border-radius: 999px;
+  background: var(--uv-link-bg, color-mix(in oklab, var(--color-accent) 45%, transparent));
+  transition: width 0.3s ease;
+}
+.uv-link span, .uv-link svg { position: relative; }
+.uv-link svg { margin-left: 10px; transform: translateX(-5px); transition: transform 0.3s ease; }
+.uv-link:hover::before { width: 100%; }
+.uv-link:hover svg { transform: translateX(0); }
+.uv-link:active { transform: scale(0.96); }
+
+/* Expanding round submit: vinodjangid07/afraid-falcon-17 */
+.uv-send {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-accent) 30%, transparent);
+  overflow: hidden;
+  transition: width 0.3s, background-color 0.3s, color 0.3s;
+  cursor: pointer;
+}
+.uv-send svg { transition: transform 0.3s; }
+.uv-send::before {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -20px;
+  font-size: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.uv-send:hover, .uv-send:focus-visible { width: 132px; background: var(--color-accent); }
+.uv-send:hover svg, .uv-send:focus-visible svg { transform: translateY(-220%); }
+.uv-send:hover::before, .uv-send:focus-visible::before { font-size: 13px; bottom: unset; transition: font-size 0.3s; }
+
+/* Rotating glow frame: vikas7754/yellow-stingray-17 */
+.uv-glow { position: relative; isolation: isolate; }
+.uv-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from var(--uv-angle, 0deg), #e59bd0, #ffffff22, #7c6cd9, #ffffff22, #e59bd0);
+  animation: uv-spin 6s linear infinite;
+  z-index: -1;
+}
+.uv-glow::after {
+  content: "";
+  position: absolute;
+  inset: 12% 8% -8%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e59bd0, #7c6cd9);
+  filter: blur(42px);
+  opacity: 0.35;
+  z-index: -2;
+  transition: opacity 0.4s;
+}
+.uv-glow:focus-within::after { opacity: 0.6; }
+@property --uv-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes uv-spin { to { --uv-angle: 360deg; } }
+
+/* Ring pulse loader: Li-Deheng/bright-firefox-37 */
+.uv-rings { display: flex; align-items: center; --c: currentColor; --a: 2s ease-in-out infinite; }
+.uv-rings i {
+  position: relative;
+  display: grid; place-items: center;
+  width: 14px; height: 14px;
+  margin: 0 7px;
+  border: 2px solid var(--c);
+  border-radius: 50%;
+  animation: uv-circle var(--a);
+}
+.uv-rings i::before {
+  content: "";
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+  animation: uv-dot var(--a);
+}
+.uv-rings i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: uv-outline var(--a);
+}
+.uv-rings i:nth-child(2), .uv-rings i:nth-child(2)::before, .uv-rings i:nth-child(2)::after { animation-delay: 0.3s; }
+.uv-rings i:nth-child(3), .uv-rings i:nth-child(3)::before, .uv-rings i:nth-child(3)::after { animation-delay: 0.6s; }
+.uv-rings i:nth-child(4), .uv-rings i:nth-child(4)::before, .uv-rings i:nth-child(4)::after { animation-delay: 0.9s; }
+@keyframes uv-circle { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
+@keyframes uv-dot { 0%,100% { transform: scale(1); } 50% { transform: scale(0); } }
+@keyframes uv-outline {
+  0% { transform: scale(0); outline: solid 14px var(--c); outline-offset: 0; opacity: 1; }
+  100% { transform: scale(1); outline: solid 0 transparent; outline-offset: 14px; opacity: 0; }
+}
+
+/* Sliding bar loader: shadowmurphy/wicked-fish-61 */
+.uv-bar { position: relative; height: 8px; border-radius: 99px; overflow: hidden; background: color-mix(in oklab, currentColor 12%, transparent); }
+.uv-bar::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 34%; height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #e59bd0, #7c6cd9);
+  animation: uv-slide 1.9s ease-in-out infinite;
+}
+@keyframes uv-slide { 0%,100% { left: 0; } 50% { left: 66%; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
