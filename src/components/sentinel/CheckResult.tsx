@@ -20,11 +20,20 @@ const SOURCE_NAMES: Record<string, string> = {
 };
 const sourceName = (s: IntelSourceId | string) => SOURCE_NAMES[s] ?? String(s);
 import { EvidenceList, fromReports } from "./EvidenceList";
+import { useT } from "@/lib/client/useT";
+import { useRef } from "react";
 
 export function CheckResult({ input }: { input: string }) {
   const q = useCheck(input);
+  const tr = useT();
+  // True once an answer has already been shown for this input, which means a
+  // pending state now is a language change rather than the first look.
+  const seenOnce = useRef(false);
+  if (q.data) seenOnce.current = true;
 
-  if (q.isPending) return <ResultSkeleton label="Checking live scam sources and asking SERV…" />;
+  // While a language change is re-generating the answer, say so: the wait is a
+  // real SERV call, and a silent skeleton reads as nothing happening.
+  if (q.isPending) return <ResultSkeleton label={tr(seenOnce.current ? "loading.rereading" : "loading.checking")} />;
   if (q.isError) return <ResultError error={q.error} onRetry={() => q.refetch()} />;
 
   const d = q.data;

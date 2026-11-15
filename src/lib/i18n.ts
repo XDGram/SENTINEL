@@ -94,6 +94,18 @@ export const COPY = {
   },
   "page.devLine2": { en: "into your wallet.", fr: "à votre portefeuille.", es: "a tu cartera." },
 
+  // Loading
+  "loading.checking": {
+    en: "Checking live scam sources and asking SERV…",
+    fr: "Vérification des sources en direct et interrogation de SERV…",
+    es: "Consultando fuentes en vivo y preguntando a SERV…",
+  },
+  "loading.rereading": {
+    en: "Re-reading this in English…",
+    fr: "Nouvelle lecture en français…",
+    es: "Releyendo esto en español…",
+  },
+
   // Results
   "result.safe": { en: "Looks safe", fr: "Semble sûr", es: "Parece seguro" },
   "result.risky": { en: "Dangerous", fr: "Dangereux", es: "Peligroso" },
