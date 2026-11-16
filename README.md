@@ -10,6 +10,20 @@ When Watchdog finds a new attacker, it does not just warn one person. The findin
 
 Built for **SERV Hackathon 02, Reppo track**.
 
+**Live:** https://watchdog-reppo.vercel.app
+
+## What you can do with it
+
+- **Try the demo** (`/demo`): two simulated wallets, Ada and Bayo. Ada meets a new attack and SERV pauses it; once Reppo verifies the attacker, Bayo is blocked from memory on a different site in about a second, with zero AI calls.
+- **Check anything suspicious** (`/`): paste a link, address or a whole chat message (even a defanged link like `hxxps://uniswap[.]lc`). Watchdog pulls out the indicator and checks it against the live sources and SERV.
+- **Scan a real wallet** (`/dashboard`): reads a wallet's live token approvals on Ethereum and flags the risky ones, with a plain-language summary.
+- **See the threat memory** (`/memory`): every attacker Reppo has verified, with its eval ID and score.
+- **Listen:** Watchdog reads its warnings out loud (Bella voice through ai33pro), and falls back to the device's own speech engine if that fails.
+- **Switch language:** the whole interface, SERV's explanations and the spoken warnings work in **English, French and Spanish**.
+- **Build on it** (`/developers`): the verified threat feed API for wallets, exchanges and dApps.
+
+---
+
 ---
 
 ## The loop, live
@@ -144,6 +158,8 @@ Environment variables (see [`.env.example`](.env.example)):
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `WATCHDOG_DB_KEY` | Threat memory: public key plus the server-only secret checked by RLS |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional alternative to the two keys above |
 | `TAVILY_API_KEY` or `BRAVE_API_KEY` | Web search for community reports |
+| `ETHERSCAN_API_KEY`, `ETH_RPC_URL` | Wallet approval scan (approval history, and an Ethereum RPC; defaults to a public node) |
+| `AI33_API_KEY`, `AI33_VOICE_ID`, `VOICE_MAX_CALLS_PER_DAY` | Spoken warnings through ai33pro (falls back to the device's speech engine) |
 | `CRON_SECRET` | Protects the scheduled intel sweep |
 
 Every key is optional for local dev. Without Supabase, threat memory falls back to an in-process store that resets on restart. Without SERV, analyses are labelled as rules + sources only.
@@ -158,6 +174,9 @@ Keys live only in environment variables. They never appear in code, commits, pro
 |---|---|
 | `POST /api/analyze` | Full pipeline for one wallet action |
 | `POST /api/ask` | Follow-up question about an analysis (SERV) |
+| `POST /api/check` | Check a link, address or pasted message against the sources and SERV |
+| `POST /api/scan/wallet` | Scan a real wallet's token approvals for risk |
+| `POST /api/voice` | Read a piece of Watchdog's output aloud (ai33pro, Bella voice) |
 | `POST /api/reppo/submit` | Send a discovered threat to Reppo (server-gated) |
 | `GET /api/reppo/status?threatId=` | Poll Reppo and advance the threat timeline |
 | `GET /api/threats` | Threat memory and timeline events |
@@ -204,12 +223,14 @@ Watchdog is **free for users**. Wallets, exchanges and dApps pay for:
 
 ## Roadmap
 
-- **More languages:** Nigerian Pidgin, Hausa and Yorùbá (the types already reserve them)
-- **Voice:** spoken warnings and questions for users who prefer audio
+- **More languages** beyond English, French and Spanish
+- **Voice questions:** ask Watchdog out loud, not just hear its answers
 - **Browser extension:** check real transactions inside any wallet before signing
 - **Real-time alerts:** notify users when an address or approval they hold is newly flagged
 
 ## Credits
+
+Voice: Bella through [ai33pro](https://ai33.pro).
 
 UI elements adapted from [Uiverse.io](https://uiverse.io) (MIT License) and restyled for Watchdog:
 glider tabs by Pradeepsaranbishnoi, arrow and expanding-circle buttons by alexmaracinaru,
